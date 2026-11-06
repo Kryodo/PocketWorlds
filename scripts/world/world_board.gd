@@ -339,10 +339,14 @@ func _gui_input(event: InputEvent) -> void:
 		if _touch_points.has(event.index):
 			if _touch_points.size() >= 2:
 				var points_before: Array = _touch_points.values()
-				var old_distance := points_before[0].distance_to(points_before[1])
+				var old_point_a: Vector2 = points_before[0]
+				var old_point_b: Vector2 = points_before[1]
+				var old_distance: float = old_point_a.distance_to(old_point_b)
 				_touch_points[event.index] = event.position
 				var points_after: Array = _touch_points.values()
-				var new_distance := points_after[0].distance_to(points_after[1])
+				var new_point_a: Vector2 = points_after[0]
+				var new_point_b: Vector2 = points_after[1]
+				var new_distance: float = new_point_a.distance_to(new_point_b)
 				if old_distance > 1.0 and new_distance > 1.0:
 					_zoom_at((points_after[0] + points_after[1]) * 0.5, new_distance / old_distance)
 				_pinching = true
