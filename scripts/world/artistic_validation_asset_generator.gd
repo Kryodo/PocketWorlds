@@ -111,7 +111,14 @@ static func _create_asset_layers(asset_id: String) -> Array[Image]:
 static func _create_oak_layers() -> Array[Image]:
 	var size := Vector2i(256, 256)
 	var shadow := _transparent_image(size)
-	_draw_stepped_ellipse(shadow, 128, 237, 78, 14, TILE_STEP, Color(0.10, 0.20, 0.12, 0.88))
+	var oak_shadow_rows: Array[Vector3i] = [
+		Vector3i(220, 112, 144), Vector3i(224, 88, 168),
+		Vector3i(228, 80, 176), Vector3i(232, 84, 180),
+		Vector3i(236, 92, 172), Vector3i(240, 104, 160),
+		Vector3i(244, 116, 148)
+	]
+	_draw_row_bands(shadow, oak_shadow_rows, TILE_STEP, Color(0.10, 0.20, 0.12, 0.86))
+	_draw_stepped_ellipse(shadow, 128, 240, 24, 6, TILE_STEP, Color(0.07, 0.14, 0.09, 0.80))
 
 	var base := _transparent_image(size)
 	_draw_stepped_ellipse(base, 128, 232, 32, 12, TILE_STEP, Color("543321"))
@@ -190,7 +197,11 @@ static func _draw_trunk(image: Image) -> void:
 static func _create_plant_layers() -> Array[Image]:
 	var size := Vector2i(128, 128)
 	var shadow := _transparent_image(size)
-	_draw_stepped_ellipse(shadow, 64, 119, 31, 7, 4, Color(0.10, 0.20, 0.12, 0.82))
+	var plant_shadow_rows: Array[Vector3i] = [
+		Vector3i(112, 52, 72), Vector3i(116, 44, 84),
+		Vector3i(120, 40, 88), Vector3i(124, 52, 76)
+	]
+	_draw_row_bands(shadow, plant_shadow_rows, 4, Color(0.10, 0.20, 0.12, 0.82))
 
 	var base := _transparent_image(size)
 	_draw_stepped_line(base, Vector2(64, 116), Vector2(43, 56), 5, Color("285738"), 4)
@@ -225,7 +236,11 @@ static func _draw_flower_head(image: Image, center: Vector2, petal_color: Color,
 static func _create_rock_layers() -> Array[Image]:
 	var size := Vector2i(160, 112)
 	var shadow := _transparent_image(size)
-	_draw_stepped_ellipse(shadow, 80, 103, 58, 9, 4, Color(0.09, 0.17, 0.13, 0.86))
+	var rock_shadow_rows: Array[Vector3i] = [
+		Vector3i(96, 56, 104), Vector3i(100, 36, 128),
+		Vector3i(104, 28, 132), Vector3i(108, 44, 116)
+	]
+	_draw_row_bands(shadow, rock_shadow_rows, 4, Color(0.09, 0.17, 0.13, 0.86))
 
 	var base := _transparent_image(size)
 	var outline: Array[Vector3i] = [
@@ -461,8 +476,10 @@ static func _composite_layers(layers: Array[Image]) -> Image:
 					continue
 				var destination := output.get_pixel(x, y)
 				var out_alpha := source.a + destination.a * (1.0 - source.a)
-				var out_rgb := (source.rgb * source.a + destination.rgb * destination.a * (1.0 - source.a)) / out_alpha
-				output.set_pixel(x, y, Color(out_rgb.x, out_rgb.y, out_rgb.z, out_alpha))
+				var out_red := (source.r * source.a + destination.r * destination.a * (1.0 - source.a)) / out_alpha
+				var out_green := (source.g * source.a + destination.g * destination.a * (1.0 - source.a)) / out_alpha
+				var out_blue := (source.b * source.a + destination.b * destination.a * (1.0 - source.a)) / out_alpha
+				output.set_pixel(x, y, Color(out_red, out_green, out_blue, out_alpha))
 	return output
 
 static func _save_asset_definition(asset_id: String, spec: Dictionary, path: String) -> Error:
