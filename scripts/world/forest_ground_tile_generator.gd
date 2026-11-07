@@ -55,19 +55,19 @@ static func generate_all_assets(overwrite_existing: bool = false) -> Dictionary:
 static func create_image(asset_id: String) -> Image:
 	var image := Image.create(TILE_SIZE.x, TILE_SIZE.y, false, Image.FORMAT_RGBA8)
 	image.fill(Color(0.0, 0.0, 0.0, 0.0))
-	var seed := absi(asset_id.hash()) % 997
+	var variation_seed := absi(asset_id.hash()) % 997
 	var palette := _palette_for(asset_id)
 	for y in range(TILE_SIZE.y):
 		for x in range(TILE_SIZE.x):
 			var diamond_distance := absf(float(x) - 95.5) / 95.5 + absf(float(y) - 47.5) / 47.5
 			if diamond_distance > 1.0:
 				continue
-			var variation := posmod(x * 17 + y * 31 + seed * 13 + x * y, 13)
+			var variation := posmod(x * 17 + y * 31 + variation_seed * 13 + x * y, 13)
 			var color: Color = palette[variation % palette.size()]
 			if (asset_id.begins_with("forest_dirt") and variation == 2) or (asset_id == "forest_rocky_ground" and variation == 4):
 				color = palette[0].darkened(0.12)
 			image.set_pixel(x, y, color)
-	_add_terrain_details(image, asset_id, seed, palette)
+	_add_terrain_details(image, asset_id, variation_seed, palette)
 	return image
 
 static func _palette_for(asset_id: String) -> Array[Color]:
@@ -81,26 +81,26 @@ static func _palette_for(asset_id: String) -> Array[Color]:
 		return [Color("315b3d"), Color("3a6842"), Color("46754a"), Color("54804f"), Color("648b58"), Color("426b45")]
 	return [Color("315c3c"), Color("386743"), Color("427049"), Color("4b7850"), Color("568253"), Color("628a59")]
 
-static func _add_terrain_details(image: Image, asset_id: String, seed: int, palette: Array[Color]) -> void:
+static func _add_terrain_details(image: Image, asset_id: String, variation_seed: int, palette: Array[Color]) -> void:
 	if asset_id.begins_with("forest_dirt"):
 		for index in range(54):
-			var px := 12 + posmod(index * 37 + seed, 168)
-			var py := 5 + posmod(index * 19 + seed * 3, 86)
+			var px := 12 + posmod(index * 37 + variation_seed, 168)
+			var py := 5 + posmod(index * 19 + variation_seed * 3, 86)
 			if _inside_diamond(px, py):
 				var tone: Color = palette[posmod(index, palette.size())]
 				_paint_pixel(image, px, py, tone.lightened(0.10 if index % 3 == 0 else 0.0))
 		return
 	if asset_id == "forest_rocky_ground":
 		for index in range(26):
-			var px := 10 + posmod(index * 43 + seed, 172)
-			var py := 4 + posmod(index * 23 + seed * 5, 88)
+			var px := 10 + posmod(index * 43 + variation_seed, 172)
+			var py := 4 + posmod(index * 23 + variation_seed * 5, 88)
 			if _inside_diamond(px, py):
 				var stone := Color("b0aa96") if index % 4 == 0 else Color("46564d")
 				_paint_cluster(image, px, py, stone, 1 if index % 3 == 0 else 2)
 		return
 	for index in range(42):
-		var px := 8 + posmod(index * 41 + seed, 176)
-		var py := 3 + posmod(index * 29 + seed * 7, 90)
+		var px := 8 + posmod(index * 41 + variation_seed, 176)
+		var py := 3 + posmod(index * 29 + variation_seed * 7, 90)
 		if not _inside_diamond(px, py):
 			continue
 		var blade := Color("8ca96a") if index % 4 == 0 else Color("294d35")
@@ -110,8 +110,8 @@ static func _add_terrain_details(image: Image, asset_id: String, seed: int, pale
 	if asset_id == "forest_grass_flowers" or asset_id == "forest_wildflowers":
 		var flower_count := 8 if asset_id == "forest_grass_flowers" else 18
 		for index in range(flower_count):
-			var px := 12 + posmod(index * 53 + seed, 168)
-			var py := 4 + posmod(index * 31 + seed * 11, 88)
+			var px := 12 + posmod(index * 53 + variation_seed, 168)
+			var py := 4 + posmod(index * 31 + variation_seed * 11, 88)
 			if _inside_diamond(px, py):
 				var flower := Color("f0d78a") if index % 3 == 0 else (Color("e7b9d3") if index % 3 == 1 else Color("eee7c9"))
 				_paint_cluster(image, px, py, flower, 1)
@@ -147,7 +147,7 @@ static func _save_source_layers(asset_id: String, composite: Image, source_root:
 		"version": 1,
 		"asset_id": asset_id,
 		"size": [TILE_SIZE.x, TILE_SIZE.y],
-		"ground_anchor_px": [TILE_SIZE.x / 2, TILE_SIZE.y / 2],
+		"ground_anchor_px": [float(TILE_SIZE.x) / 2.0, float(TILE_SIZE.y) / 2.0],
 		"footprint_size": [1, 1],
 		"layers": [
 			{"name": "Shadow Paintover", "file": "layer_00.png"},
