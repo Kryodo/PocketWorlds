@@ -91,3 +91,7 @@ The current ground artwork is a procedural starter texture set intended for in-g
 ## CP04 — Artistic validation
 
 Run `scenes/tests/artistic_validation_review.tscn` with F6 to compare the existing object sprites and diamond ground tiles against an isolated pixel-cluster study. The study creates a larger oak, a small plant, a rock and a continuous 7 × 5 ground patch with editable source layers. It does not replace or modify the existing assets or gameplay. See `docs/CP04_ARTISTIC_VALIDATION.md` for the review criteria and generated-file locations.
+
+## CP05 — Gemini asset import
+
+The original Gemini woodland sheet is preserved at `art_inbox/woodland_asset_set_01.jpg`. Run `scenes/tests/ai_woodland_asset_review.tscn` with F6 to extract six transparent PNGs, create their asset definitions and source documents, and compare them against the existing sprites on the same 2:1 ground. The experiment is isolated and does not replace existing production assets. See `docs/CP05_GEMINI_ASSET_IMPORT.md` for crop, scale and extraction details.
