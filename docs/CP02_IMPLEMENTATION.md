@@ -87,3 +87,19 @@ The first asset integration pass adds:
 Each runtime PNG has three editable source layers (Shadow, Main, Highlights) and a source `document.json`. Definitions live under `assets/definitions/`; runtime composites live under `assets/sprites/`. The existing debug ground and remaining debug objects are intentionally retained so this slice changes only the three selected asset instances.
 
 Run `scenes/tests/asset_collection_regression.tscn` with F6. Expected output: `ASSET COLLECTION REGRESSION PASS`. This checks transparent texture content, metadata, source-layer presence and WorldEntity sprite/anchor setup. A normal main-scene run is still required to visually verify projection scale and depth sorting on the user's Godot 4.7 setup.
+
+
+## CP03 terrain and object-scale integration
+
+The first three authored object PNGs remain unchanged. Their display scale is now definition metadata, so the source PNG dimensions and logical ground anchors are preserved while the in-world sprite size can be tuned independently. The Art Studio canvas supports rectangular documents and configurable dimensions.
+
+The debug ground was replaced by `WorldGroundTiles`, which renders one 2:1 diamond sprite per grid cell. Six forest tile definitions are produced by `ForestGroundTileGenerator`: grass, flower grass, wildflowers, dirt path, bare dirt path and rocky ground. The source tiles are 192 × 96 and render at 0.5 scale to align with the 96 × 48 projection cell. The generator writes static PNGs, `.tres` definitions and editable three-layer source documents. Existing files are preserved by default.
+
+### CP03 verification
+
+1. Run `scenes/tests/generate_forest_ground_tiles.tscn` with F6. Expected output begins with `FOREST GROUND TILE PNG GENERATION PASS`.
+2. Run `scenes/tests/asset_ground_review.tscn` with F6 to inspect the three existing object sprites on the generated ground.
+3. Run `scenes/tests/asset_collection_regression.tscn` with F6. Expected output: `ASSET + GROUND REGRESSION PASS`.
+4. Run `scenes/tests/world_foundation_regression.tscn` with F6 to confirm the existing projection and occupancy foundation remains intact.
+
+Generated PNGs, definitions and source files live under `assets/sprites/`, `assets/definitions/` and `assets/source_art/`. Commit those generated assets through GitHub Desktop after visual review.

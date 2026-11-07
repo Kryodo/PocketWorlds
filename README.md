@@ -25,6 +25,8 @@ The package does not contain `.git/` or `.godot/`.
 - World object anchors and selection areas are independent of grid cell dimensions.
 - Pocket Worlds Art Studio editor plugin for pixel painting, layers, palettes, source saving and PNG/resource export.
 - First real transparent PNG collection: Old Oak, Moonpetal Plant and Mossy Rock, with editable source layers and asset definitions.
+- Six generated 2:1 diamond forest ground tiles, rendered as 96 × 48 world cells from 192 × 96 source PNGs.
+- Dedicated Forest Asset + Ground Review and PNG-generation F6 scenes.
 - Tap-to-inspect contextual object interactions.
 - Basic inventory, XP and Sanctuary levels.
 - Home interior with Field Guide, Alchemy Table, Workbench and Creature Nook hubs.
@@ -49,8 +51,8 @@ Progress is saved automatically in the user's Godot data directory.
 
 ## Important limitations
 
-- Old Oak, Moonpetal Plant and Mossy Rock are now real transparent PNG sprites with editable source layers. Most other world objects and the ground are still temporary debug silhouettes/polygons.
-- Art Studio is an initial MVP. It currently provides a 128 × 128 canvas, brush/eraser/eyedropper, layers, palette selection, source save/load, PNG export and asset metadata export. Advanced selection, fill, shape and animation editing are not implemented yet.
+- Old Oak, Moonpetal Plant and Mossy Rock are real transparent PNG sprites with editable source layers. Most other world objects remain temporary debug silhouettes; the first generated forest ground tiles now replace the debug ground.
+- Art Studio is an initial MVP. It provides configurable rectangular canvases (16–2048 px per axis), brush/eraser/eyedropper, layers, palette selection, source save/load, PNG export, asset metadata export and a forest ground PNG generator. Advanced selection, fill, shape and animation editing are not implemented yet.
 - Object placement is restricted to predefined demonstration slots; a full drag-to-place editor is a later checkpoint.
 - Discovery interactions are authored examples, not a generalized quest or ecology simulation.
 - The Creature Nook is currently a placeholder hub.
@@ -78,3 +80,11 @@ ASSET COLLECTION REGRESSION PASS
 ## Verification
 
 See `docs/PLAYABLE_SKELETON_V0_1.md` for the architecture and manual verification checklist.
+
+## CP03 forest ground tiles
+
+The first ground pass provides six generated, transparent diamond tiles: grass, grass with flowers, wildflowers, dirt path, bare dirt path and rocky ground. Source PNGs are 192 × 96 and render at 0.5 scale to match the 96 × 48 projected grid cell.
+
+Run `scenes/tests/generate_forest_ground_tiles.tscn` with F6 to create the persistent PNGs, `.tres` definitions and three-layer Art Studio source documents. The generator preserves existing files by default. Review the integrated scale and terrain at `scenes/tests/asset_ground_review.tscn`, then run `scenes/tests/asset_collection_regression.tscn` with F6.
+
+The current ground artwork is a procedural starter texture set intended for in-game scale evaluation, not a final art pack. See `docs/CP03_ASSET_GROUND_REVIEW.md`.

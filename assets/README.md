@@ -24,3 +24,18 @@ The current editor canvas is 128 × 128. Keep the ground anchor and footprint co
 - Shadows are deliberately part of the authored sprite, not generated with runtime polygon drawing.
 - The grid footprint describes occupied world cells; it is independent of the PNG's visual dimensions.
 - The collection is a first visual integration test, not a final biome-wide production library. Remaining map objects and the ground still include debug placeholders.
+
+## First forest ground set
+
+| Asset ID | Runtime PNG | Source size | Displayed cell |
+|---|---|---:|---:|
+| `forest_grass` | `sprites/forest_grass.png` | 192 × 96 | 96 × 48 |
+| `forest_grass_flowers` | `sprites/forest_grass_flowers.png` | 192 × 96 | 96 × 48 |
+| `forest_wildflowers` | `sprites/forest_wildflowers.png` | 192 × 96 | 96 × 48 |
+| `forest_dirt_path` | `sprites/forest_dirt_path.png` | 192 × 96 | 96 × 48 |
+| `forest_dirt_path_bare` | `sprites/forest_dirt_path_bare.png` | 192 × 96 | 96 × 48 |
+| `forest_rocky_ground` | `sprites/forest_rocky_ground.png` | 192 × 96 | 96 × 48 |
+
+Run `scenes/tests/generate_forest_ground_tiles.tscn` with F6 to generate these runtime PNGs, their `.tres` definitions and editable three-layer source documents. Existing files are preserved by default. The generator is also available from the Art Studio toolbar.
+
+The tiles are generated with Godot's `Image` API and saved as ordinary static PNGs. The runtime renderer uses those PNGs when available and has an in-memory generated-texture fallback before the files have been created. Each source document separates a base-art layer from transparent shadow and highlight paintover layers.
