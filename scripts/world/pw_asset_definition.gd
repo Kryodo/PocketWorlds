@@ -13,6 +13,11 @@ enum AssetRole {
 	GROUND_TILE
 }
 
+enum TextureFilterMode {
+	NEAREST,
+	LINEAR
+}
+
 @export var schema_version: int = 1
 @export var asset_id: StringName = &""
 @export var display_name: String = ""
@@ -36,6 +41,7 @@ enum AssetRole {
 @export var default_animation: StringName = &"idle"
 @export var asset_role: AssetRole = AssetRole.WORLD_OBJECT
 @export var sprite_scale: Vector2 = Vector2.ONE
+@export var texture_filter_mode: TextureFilterMode = TextureFilterMode.NEAREST
 
 func get_footprint_cells(anchor: Vector2i) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
