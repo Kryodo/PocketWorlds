@@ -60,7 +60,7 @@ func _rebuild_visual() -> void:
 	if definition.sprite_frames != null and definition.sprite_frames.get_animation_names().size() > 0:
 		_animated_sprite = AnimatedSprite2D.new()
 		_animated_sprite.sprite_frames = definition.sprite_frames
-		_animated_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		_animated_sprite.texture_filter = _get_texture_filter()
 		_animated_sprite.scale = definition.sprite_scale
 		_animated_sprite.position = _get_sprite_offset()
 		add_child(_animated_sprite)
@@ -74,10 +74,16 @@ func _rebuild_visual() -> void:
 			return
 		_sprite = Sprite2D.new()
 		_sprite.texture = texture
-		_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		_sprite.texture_filter = _get_texture_filter()
 		_sprite.scale = definition.sprite_scale
 		_sprite.position = _get_sprite_offset()
 		add_child(_sprite)
+
+
+func _get_texture_filter() -> CanvasItem.TextureFilter:
+	if definition != null and definition.texture_filter_mode == PWAssetDefinition.TextureFilterMode.LINEAR:
+		return CanvasItem.TEXTURE_FILTER_LINEAR
+	return CanvasItem.TEXTURE_FILTER_NEAREST
 
 func _get_sprite_offset() -> Vector2:
 	var texture_size := Vector2(definition.texture_size_px)
