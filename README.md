@@ -95,3 +95,7 @@ Run `scenes/tests/artistic_validation_review.tscn` with F6 to compare the existi
 ## CP05 — Gemini asset import
 
 The original Gemini woodland sheet is preserved at `art_inbox/woodland_asset_set_01.jpg`. Run `scenes/tests/ai_woodland_asset_review.tscn` with F6 to extract six transparent PNGs, create their asset definitions and source documents, and compare them against the existing sprites on the same 2:1 ground. The experiment is isolated and does not replace existing production assets. See `docs/CP05_GEMINI_ASSET_IMPORT.md` for crop, scale and extraction details.
+
+## CP06 — Starter asset planning
+
+CP06 defines only the minimum starter content required to validate Pocket Worlds artwork and the production pipeline: ground and terrain, environmental objects, three starter buildings, one creature with idle/walk/signature animation rows, and a small core item-icon sheet. It also evaluates the candidate 128 × 64 world grid without changing the main projection yet. See `docs/CP06_STARTER_ASSET_PLAN.md` and the machine-readable `assets/catalog/starter_asset_inventory.json`. No full asset library is in scope.
