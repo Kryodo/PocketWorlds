@@ -1,0 +1,30 @@
+{
+	"asset_id": "validation_plant",
+	"footprint_size": [
+		1,
+		1
+	],
+	"ground_anchor_px": [
+		64.0,
+		122.0
+	],
+	"layers": [
+		{
+			"file": "layer_00.png",
+			"name": "Ground Shadow"
+		},
+		{
+			"file": "layer_01.png",
+			"name": "Base Art"
+		},
+		{
+			"file": "layer_02.png",
+			"name": "Directional Highlights"
+		}
+	],
+	"size": [
+		128,
+		128
+	],
+	"version": 1
+}

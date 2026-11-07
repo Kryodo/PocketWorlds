@@ -1,0 +1,30 @@
+{
+	"asset_id": "validation_oak",
+	"footprint_size": [
+		2,
+		2
+	],
+	"ground_anchor_px": [
+		128.0,
+		244.0
+	],
+	"layers": [
+		{
+			"file": "layer_00.png",
+			"name": "Ground Shadow"
+		},
+		{
+			"file": "layer_01.png",
+			"name": "Base Art"
+		},
+		{
+			"file": "layer_02.png",
+			"name": "Directional Highlights"
+		}
+	],
+	"size": [
+		256,
+		256
+	],
+	"version": 1
+}

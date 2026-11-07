@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="PWAssetDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/pw_asset_definition.gd" id="1_hf1m1"]
+
+[resource]
+script = ExtResource("1_hf1m1")
+asset_id = &"validation_oak"
+display_name = "Validation Oak"
+category = &"tree"
+tags = Array[StringName]([&"art_validation", &"tree", &"pixel_art"])
+texture_path = "res://assets/sprites/validation_oak.png"
+texture_size_px = Vector2i(256, 256)
+ground_anchor_px = Vector2(128, 244)
+footprint_size = Vector2i(2, 2)
+selection_polygon = PackedVector2Array()

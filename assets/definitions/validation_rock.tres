@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PWAssetDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/pw_asset_definition.gd" id="1_o5ees"]
+
+[resource]
+script = ExtResource("1_o5ees")
+asset_id = &"validation_rock"
+display_name = "Validation Rock"
+category = &"rock"
+tags = Array[StringName]([&"art_validation", &"rock", &"pixel_art"])
+texture_path = "res://assets/sprites/validation_rock.png"
+texture_size_px = Vector2i(160, 112)
+ground_anchor_px = Vector2(80, 102)
+selection_polygon = PackedVector2Array()

@@ -1,0 +1,30 @@
+{
+	"asset_id": "validation_rock",
+	"footprint_size": [
+		1,
+		1
+	],
+	"ground_anchor_px": [
+		80.0,
+		102.0
+	],
+	"layers": [
+		{
+			"file": "layer_00.png",
+			"name": "Ground Shadow"
+		},
+		{
+			"file": "layer_01.png",
+			"name": "Base Art"
+		},
+		{
+			"file": "layer_02.png",
+			"name": "Directional Highlights"
+		}
+	],
+	"size": [
+		160,
+		112
+	],
+	"version": 1
+}

@@ -1,0 +1,30 @@
+{
+	"asset_id": "validation_ground_patch",
+	"footprint_size": [
+		7,
+		5
+	],
+	"ground_anchor_px": [
+		288.0,
+		144.0
+	],
+	"layers": [
+		{
+			"file": "layer_00.png",
+			"name": "Continuous Ground Base"
+		},
+		{
+			"file": "layer_01.png",
+			"name": "Winding Dirt Path"
+		},
+		{
+			"file": "layer_02.png",
+			"name": "Terrain Details"
+		}
+	],
+	"size": [
+		576,
+		288
+	],
+	"version": 1
+}
