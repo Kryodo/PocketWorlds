@@ -52,3 +52,7 @@ The artistic validation experiment is deliberately kept separate from the first 
 The three object prototypes use separate ground-shadow, base-art and directional-highlight layers. The ground patch has separate base, winding path and terrain-detail layers. All files use the existing asset-definition and source-document conventions. They are experimental review assets, not replacements for the existing sprites or CP03 tiles.
 
 See `docs/CP04_ARTISTIC_VALIDATION.md` for evaluation criteria and the test setup.
+
+## CP05 — External Gemini asset import
+
+The original JPG sheet is preserved at `art_inbox/woodland_asset_set_01.jpg`. Run `scenes/tests/ai_woodland_asset_review.tscn` with F6 to crop six objects, key out the cyan background, save transparent PNGs, create `PWAssetDefinition` resources and source documents, then compare them against the existing sprites. Imported definitions use per-asset LINEAR filtering; existing assets remain NEAREST. The extracted source layer is flattened because the original JPG has no independent object/shadow layers. See `docs/CP05_GEMINI_ASSET_IMPORT.md`.
