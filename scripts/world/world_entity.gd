@@ -80,7 +80,7 @@ func _rebuild_visual() -> void:
 		add_child(_sprite)
 
 
-func _get_texture_filter() -> CanvasItem.TextureFilter:
+func _get_texture_filter() -> int:
 	if definition != null and definition.texture_filter_mode == PWAssetDefinition.TextureFilterMode.LINEAR:
 		return CanvasItem.TEXTURE_FILTER_LINEAR
 	return CanvasItem.TEXTURE_FILTER_NEAREST
