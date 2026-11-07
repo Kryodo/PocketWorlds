@@ -159,8 +159,9 @@ static func _extract_crop(source: Image, crop_rect: Rect2i, key_color: Color) ->
 		for x in range(extracted.get_width()):
 			var pixel := extracted.get_pixel(x, y)
 			var cyan_like := (
-				pixel.b > pixel.g * 1.10
-				and pixel.r < maxf(0.14, pixel.g * 0.62)
+				pixel.h > 0.40
+				and pixel.h < 0.68
+				and pixel.r < pixel.g * 0.90
 				and pixel.g > 0.12
 			)
 			if not cyan_like:
