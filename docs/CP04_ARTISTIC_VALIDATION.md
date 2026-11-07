@@ -8,7 +8,7 @@ It is not a production biome pack and does not replace the current asset collect
 
 ## Review scene
 
-Run \`scenes/tests/artistic_validation_review.tscn\` with F6.
+Run `scenes/tests/artistic_validation_review.tscn` with F6.
 
 The scene places two samples side by side:
 
@@ -21,9 +21,9 @@ Both sides use the same projection, object cells and logical footprints. The cur
 
 | Asset | Source canvas | Ground anchor | Footprint | Display scale |
 |---|---:|---:|---:|---:|
-| \`validation_oak\` | 256 × 256 | (128, 244) | 2 × 2 | 1.0 |
-| \`validation_plant\` | 128 × 128 | (64, 122) | 1 × 1 | 1.0 |
-| \`validation_rock\` | 160 × 112 | (80, 102) | 1 × 1 | 1.0 |
+| `validation_oak` | 256 × 256 | (128, 244) | 2 × 2 | 1.0 |
+| `validation_plant` | 128 × 128 | (64, 122) | 1 × 1 | 1.0 |
+| `validation_rock` | 160 × 112 | (80, 102) | 1 × 1 | 1.0 |
 
 The prototypes are built from explicit pixel clusters and separate source layers:
 
@@ -35,23 +35,23 @@ The tree study tests a broad canopy with a distinct brighter upper mass and dark
 
 ## Ground study
 
-\`validation_ground_patch.png\` is a single continuous projected surface covering a 7 × 5 world grid.
+`validation_ground_patch.png` is a single continuous projected surface covering a 7 × 5 world grid.
 
 The study deliberately avoids drawing a separate visible diamond boundary around every cell. Terrain variation is distributed as larger connected color clusters, with a winding dirt path, small flower groups and stone details.
 
-Its editable source document is stored at \`assets/source_art/validation_ground_patch/\`.
+Its editable source document is stored at `assets/source_art/validation_ground_patch/`.
 
 ## Generated files
 
 When the review scene runs, it creates:
 
-- \`assets/sprites/validation_oak.png\`
-- \`assets/sprites/validation_plant.png\`
-- \`assets/sprites/validation_rock.png\`
-- \`assets/sprites/validation_ground_patch.png\`
-- Matching object definitions under \`assets/definitions/\`
-- Three editable PNG layers and \`document.json\` for each object under \`assets/source_art/\`
-- Three editable ground-patch layers and \`document.json\` under \`assets/source_art/validation_ground_patch/\`
+- `assets/sprites/validation_oak.png`
+- `assets/sprites/validation_plant.png`
+- `assets/sprites/validation_rock.png`
+- `assets/sprites/validation_ground_patch.png`
+- Matching object definitions under `assets/definitions/`
+- Three editable PNG layers and `document.json` for each object under `assets/source_art/`
+- Three editable ground-patch layers and `document.json` under `assets/source_art/validation_ground_patch/`
 
 Existing validation files are preserved by default. To intentionally regenerate a prototype after editing it, remove that prototype's generated files first or explicitly change the generator call to overwrite them.
 
