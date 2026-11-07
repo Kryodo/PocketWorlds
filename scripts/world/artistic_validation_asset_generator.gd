@@ -350,7 +350,7 @@ static func _draw_ground_stroke(
 				roundi(center.x),
 				roundi(center.y),
 				int(floorf(float(width) * 0.5)),
-				int(width / 2),
+				int(floorf(float(width) * 0.5)),
 				TILE_STEP,
 				color,
 				map_size,
@@ -406,7 +406,7 @@ static func _draw_stepped_ellipse(
 	color: Color
 ) -> void:
 	for y in range(center_y - radius_y, center_y + radius_y + 1, step):
-		var dy := (float(y + step / 2) - float(center_y)) / maxf(1.0, float(radius_y))
+		var dy := ((float(y) + float(step) * 0.5) - float(center_y)) / maxf(1.0, float(radius_y))
 		if absf(dy) > 1.0:
 			continue
 		var half_width := int(floorf(float(radius_x) * sqrt(1.0 - dy * dy) / float(step))) * step
@@ -429,8 +429,8 @@ static func _draw_stepped_line(
 			image,
 			roundi(point.x),
 			roundi(point.y),
-			int(width / 2),
-			int(width / 2),
+			int(floorf(float(width) * 0.5)),
+			int(floorf(float(width) * 0.5)),
 			step,
 			color
 		)
