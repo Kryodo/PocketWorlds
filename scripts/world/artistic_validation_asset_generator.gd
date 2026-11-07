@@ -22,10 +22,8 @@ static func generate_all_assets(overwrite_existing: bool = false) -> Dictionary:
 		var definition_path := "res://assets/definitions/%s.tres" % asset_id
 		var source_root := "res://assets/source_art/%s" % asset_id
 		var document_path := source_root + "/document.json"
-		if not overwrite_existing \
-		and _file_exists(texture_path) \
-		and _file_exists(definition_path) \
-		and _file_exists(document_path):
+		var can_skip := not overwrite_existing and _file_exists(texture_path) and _file_exists(definition_path) and _file_exists(document_path)
+		if can_skip:
 			result["skipped"].append(asset_id)
 			continue
 
@@ -161,7 +159,8 @@ static func _create_oak_layers() -> Array[Image]:
 	_draw_stepped_ellipse(mid_clusters, 144, 66, 34, 22, 8, Color("47883e"))
 	_draw_stepped_ellipse(mid_clusters, 185, 100, 24, 20, 8, Color("3b783a"))
 	_draw_stepped_ellipse(mid_clusters, 78, 118, 27, 19, 8, Color("326d3b"))
-	var merged_base := _composite_layers([base, mid_clusters])
+	var oak_base_layers: Array[Image] = [base, mid_clusters]
+	var merged_base := _composite_layers(oak_base_layers)
 
 	var highlights := _transparent_image(size)
 	_draw_stepped_ellipse(highlights, 90, 55, 22, 12, 4, Color("83b951"))
@@ -261,7 +260,7 @@ static func _create_rock_layers() -> Array[Image]:
 	_draw_stepped_ellipse(highlights, 69, 37, 16, 5, 4, Color("638e4c"))
 	_draw_stepped_ellipse(highlights, 88, 35, 10, 5, 4, Color("79a653"))
 	_draw_stepped_ellipse(highlights, 53, 65, 8, 4, 4, Color("527c44"))
-	return [shadow, _composite_layers([base, highlights]), _transparent_image(size)]
+	return [shadow, base, highlights]
 
 static func _create_ground_patch_layers(map_size: Vector2i) -> Array[Image]:
 	var projection := GridProjection.new()
@@ -350,7 +349,7 @@ static func _draw_ground_stroke(
 				image,
 				roundi(center.x),
 				roundi(center.y),
-				int(width / 2),
+				int(floorf(float(width) * 0.5)),
 				int(width / 2),
 				TILE_STEP,
 				color,
@@ -370,7 +369,7 @@ static func _draw_clipped_stepped_ellipse(
 	bounds: Rect2
 ) -> void:
 	for y in range(center_y - radius_y, center_y + radius_y + 1, step):
-		var dy := (float(y + step / 2) - float(center_y)) / maxf(1.0, float(radius_y))
+		var dy := ((float(y) + float(step) * 0.5) - float(center_y)) / maxf(1.0, float(radius_y))
 		if absf(dy) > 1.0:
 			continue
 		var half_width := int(floorf(float(radius_x) * sqrt(1.0 - dy * dy) / float(step))) * step
