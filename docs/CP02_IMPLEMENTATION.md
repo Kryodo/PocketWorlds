@@ -23,6 +23,8 @@
 - Added object-level footprint metadata in the CP02 debug map.
 - Added an asset definition Resource for PNG path, pixel dimensions, ground anchor, visual offset, footprint, blocking cells, selection polygon, sorting and optional SpriteFrames.
 - Added an asset-backed WorldEntity Node2D that positions a Sprite2D or AnimatedSprite2D using the ground anchor.
+- Integrated the first three transparent PNG sprites (Old Oak, Moonpetal Plant, Mossy Rock) through PWAssetDefinition and the y-sorted WorldEntities root.
+- Standardized world-object sorting origins on the bottom-center of their logical footprint; visual sprite offsets remain driven by each PNG's ground anchor.
 
 ### Art Studio MVP
 - Added an optional editor plugin. It is not auto-enabled.
@@ -35,10 +37,10 @@
 
 ## What is deliberately still temporary
 
-- The visible world object forms remain debug silhouettes. They are deliberately not presented as production pixel art.
+- Old Oak, Moonpetal Plant and Mossy Rock now render from transparent PNGs and editable source layers. Other visible object forms remain temporary debug silhouettes.
 - The ground is a projected debug grid, not a finished terrain tileset.
 - The Art Studio does not yet provide selection/mask tools, fill, shape/line tools, animation frame editing, sprite-sheet packing, undo/redo history or asset browser integration.
-- The first production sprite family has not yet been authored.
+- The first three-sprite starter collection is authored; the broader biome library, tileset and animation frames are still future work.
 - WorldEntity exists as the asset-backed rendering primitive but is not yet used to replace the debug entities in the comparison scene.
 - Camera framing, projection ratios, filtering and touch targets still require manual visual tuning.
 - Android performance and input have not been tested in this environment.
@@ -68,8 +70,20 @@ The generated source and export files are saved into the project tree and should
 
 1. Run the regression scene and game in Godot 4.7.
 2. Fix any parser or viewport issues reported by the editor.
-3. Compare the two projection modes and check PC aspect ratios.
-4. Improve Art Studio editing ergonomics based on first hands-on use.
-5. Create the first production PNG sprites and load them through WorldEntity.
+3. Run `scenes/tests/asset_collection_regression.tscn` with F6 and confirm the runtime textures and editable source documents pass.
+4. Open the main scene and inspect the three real sprites at normal zoom and after pan/zoom; tune any visual-scale or anchor issues found in Godot.
+5. Improve Art Studio editing ergonomics based on first hands-on use.
 6. Add initial idle animation tests.
 7. Build and validate on a physical Android device.
+
+## First PNG asset collection
+
+The first asset integration pass adds:
+
+- `old_oak`: 128 × 128, ground anchor (64, 122), 2 × 2 footprint.
+- `moonpetal_plant`: 128 × 128, ground anchor (64, 119), 1 × 1 footprint.
+- `mossy_rock`: 128 × 128, ground anchor (64, 116), 1 × 1 footprint.
+
+Each runtime PNG has three editable source layers (Shadow, Main, Highlights) and a source `document.json`. Definitions live under `assets/definitions/`; runtime composites live under `assets/sprites/`. The existing debug ground and remaining debug objects are intentionally retained so this slice changes only the three selected asset instances.
+
+Run `scenes/tests/asset_collection_regression.tscn` with F6. Expected output: `ASSET COLLECTION REGRESSION PASS`. This checks transparent texture content, metadata, source-layer presence and WorldEntity sprite/anchor setup. A normal main-scene run is still required to visually verify projection scale and depth sorting on the user's Godot 4.7 setup.

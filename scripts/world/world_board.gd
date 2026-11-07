@@ -10,8 +10,9 @@ const MAX_ZOOM := 1.65
 
 const WORLD_OBJECTS := {
 	"sanctuary": [
-		{"id": "old_oak", "name": "Old Oak", "x": 8, "y": 7, "kind": "tree", "footprint_size": Vector2i(2, 2), "selection_size": Vector2(112, 132), "visual_scale": 1.45},
+		{"id": "old_oak", "name": "Old Oak", "x": 8, "y": 7, "asset_id": "old_oak", "kind": "tree", "footprint_size": Vector2i(2, 2), "selection_size": Vector2(112, 132), "visual_scale": 1.45},
 		{"id": "berry_bush", "name": "Berry Bush", "x": 19, "y": 7, "kind": "bush", "footprint_size": Vector2i(2, 2), "selection_size": Vector2(82, 62), "visual_scale": 1.2},
+		{"id": "moonpetal_plant", "name": "Moonpetal Plant", "x": 24, "y": 14, "asset_id": "moonpetal_plant", "kind": "plant", "footprint_size": Vector2i(1, 1), "selection_size": Vector2(72, 78)},
 		{"id": "pond", "name": "Quiet Pond", "x": 15, "y": 15, "kind": "pond", "footprint_size": Vector2i(3, 2), "selection_size": Vector2(128, 74)},
 		{"id": "fallen_log", "name": "Fallen Log", "x": 7, "y": 22, "kind": "log", "footprint_size": Vector2i(2, 1), "selection_size": Vector2(82, 42)},
 		{"id": "garden_bed", "name": "Garden Bed", "x": 19, "y": 22, "kind": "garden", "footprint_size": Vector2i(2, 2), "selection_size": Vector2(76, 54)},
@@ -22,7 +23,7 @@ const WORLD_OBJECTS := {
 		{"id": "ancient_marker", "name": "Ancient Marker", "x": 16, "y": 7, "kind": "marker", "footprint_size": Vector2i(1, 1), "selection_size": Vector2(76, 90)},
 		{"id": "moonseed_patch", "name": "Moonpetal Patch", "x": 8, "y": 22, "kind": "flowers", "footprint_size": Vector2i(2, 2), "selection_size": Vector2(94, 66)},
 		{"id": "crystal_cache", "name": "Crystal Cache", "x": 22, "y": 22, "kind": "crystal", "footprint_size": Vector2i(1, 1), "selection_size": Vector2(70, 86)},
-		{"id": "mossy_stone", "name": "Mossy Stone", "x": 22, "y": 12, "kind": "stone", "footprint_size": Vector2i(1, 1), "selection_size": Vector2(78, 64)}
+		{"id": "mossy_stone", "name": "Mossy Stone", "x": 22, "y": 12, "asset_id": "mossy_rock", "kind": "stone", "footprint_size": Vector2i(1, 1), "selection_size": Vector2(78, 64)}
 	]
 }
 
@@ -36,7 +37,7 @@ var _ground: WorldDebugGround
 var _objects_root: Node2D
 var _input_overlay: Control
 var _projection_label: Label
-var _entity_nodes: Array[WorldDebugObject] = []
+var _entity_nodes: Array[Node2D] = []
 var _selected_cell: Vector2i = Vector2i(-1, -1)
 var _touch_points: Dictionary = {}
 var _mouse_down: bool = false
@@ -145,20 +146,55 @@ func _rebuild_entities() -> void:
 		var item: Dictionary = data
 		if String(item.get("id", "")) == "lantern_slot" and GameState.has_flag("lantern_placed"):
 			item["kind"] = "lantern"
-		var entity := WorldDebugObject.new()
-		entity.name = String(item.get("id", "WorldObject"))
-		entity.configure(item)
+
+		var object_id := String(item.get("id", "WorldObject"))
 		var cell := Vector2i(int(item.get("x", 0)), int(item.get("y", 0)))
+		var definition: PWAssetDefinition = null
+		var asset_id := String(item.get("asset_id", ""))
+		if not asset_id.is_empty():
+			var definition_path := "res://assets/definitions/%s.tres" % asset_id
+			if ResourceLoader.exists(definition_path):
+				definition = load(definition_path) as PWAssetDefinition
+
 		var footprint_size: Vector2i = item.get("footprint_size", Vector2i.ONE)
+		if definition != null:
+			footprint_size = definition.footprint_size
 		var footprint_offsets: Array[Vector2i] = []
-		for footprint_y in range(maxi(1, footprint_size.y)):
-			for footprint_x in range(maxi(1, footprint_size.x)):
-				footprint_offsets.append(Vector2i(footprint_x, footprint_y))
-		if not _grid_data.occupy(StringName(entity.object_id), cell, footprint_offsets):
-			push_warning("World object footprint could not be occupied: %s" % entity.object_id)
-		entity.position = _projection.cell_center(cell)
-		_objects_root.add_child(entity)
-		_entity_nodes.append(entity)
+		if definition != null and not definition.footprint_offsets.is_empty():
+			for offset in definition.footprint_offsets:
+				footprint_offsets.append(offset)
+		else:
+			for footprint_y in range(maxi(1, footprint_size.y)):
+				for footprint_x in range(maxi(1, footprint_size.x)):
+					footprint_offsets.append(Vector2i(footprint_x, footprint_y))
+		if not _grid_data.occupy(StringName(object_id), cell, footprint_offsets):
+			push_warning("World object footprint could not be occupied: %s" % object_id)
+
+		var ground_position := _get_footprint_ground_position(cell, footprint_size)
+		var selection_size: Vector2 = item.get("selection_size", Vector2(80.0, 90.0))
+		if definition != null:
+			var entity := WorldEntity.new()
+			entity.name = object_id
+			entity.configure(definition, StringName(object_id), cell, selection_size)
+			entity.set_ground_position(ground_position)
+			_objects_root.add_child(entity)
+			_entity_nodes.append(entity)
+		else:
+			var debug_entity := WorldDebugObject.new()
+			debug_entity.name = object_id
+			debug_entity.configure(item)
+			debug_entity.position = ground_position
+			_objects_root.add_child(debug_entity)
+			_entity_nodes.append(debug_entity)
+
+func _get_footprint_ground_position(cell: Vector2i, footprint_size: Vector2i) -> Vector2:
+	var width := float(maxi(1, footprint_size.x))
+	var height := float(maxi(1, footprint_size.y))
+	return (
+		_projection.grid_to_world(cell)
+		+ _projection.get_axis_a() * width * 0.5
+		+ _projection.get_axis_b() * height * 0.5
+	)
 
 func _center_camera() -> void:
 	if _camera == null:
@@ -174,31 +210,51 @@ func _handle_tap(screen_position: Vector2) -> void:
 	var world_position := _screen_to_world(screen_position)
 	for index in range(_entity_nodes.size() - 1, -1, -1):
 		var entity := _entity_nodes[index]
-		if not entity.interactable:
-			continue
-		if entity.get_selection_rect().has_point(entity.to_local(world_position)):
-			_select_entity(entity)
-			return
+		if entity is WorldEntity:
+			var asset_entity := entity as WorldEntity
+			if not asset_entity.interactable:
+				continue
+			if asset_entity.get_selection_rect().has_point(asset_entity.to_local(world_position)):
+				_select_entity(asset_entity)
+				return
+		elif entity is WorldDebugObject:
+			var debug_entity := entity as WorldDebugObject
+			if not debug_entity.interactable:
+				continue
+			if debug_entity.get_selection_rect().has_point(debug_entity.to_local(world_position)):
+				_select_entity(debug_entity)
+				return
 
 	var cell := _projection.world_to_grid(world_position)
 	if not _grid_data.is_cell_inside(cell):
 		return
 	_selected_cell = cell
 	for entity in _entity_nodes:
-		entity.selected = false
+		if entity is WorldEntity:
+			(entity as WorldEntity).selected = false
+		elif entity is WorldDebugObject:
+			(entity as WorldDebugObject).selected = false
 		entity.queue_redraw()
 	_ground.selected_cell = cell
 	_ground.queue_redraw()
 	empty_tile_selected.emit(cell)
 
-func _select_entity(entity: WorldDebugObject) -> void:
+func _select_entity(entity: Node2D) -> void:
 	for item in _entity_nodes:
-		item.selected = item == entity
+		if item is WorldEntity:
+			(item as WorldEntity).selected = item == entity
+		elif item is WorldDebugObject:
+			(item as WorldDebugObject).selected = item == entity
 		item.queue_redraw()
 	_selected_cell = Vector2i(-1, -1)
 	_ground.selected_cell = _selected_cell
 	_ground.queue_redraw()
-	object_selected.emit(entity.object_id)
+	var object_id := ""
+	if entity is WorldEntity:
+		object_id = (entity as WorldEntity).object_id
+	elif entity is WorldDebugObject:
+		object_id = (entity as WorldDebugObject).object_id
+	object_selected.emit(object_id)
 
 func _on_game_state_changed() -> void:
 	if world_id == "sanctuary":

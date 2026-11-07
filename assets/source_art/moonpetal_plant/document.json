@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "asset_id": "moonpetal_plant",
+  "size": [
+    128,
+    128
+  ],
+  "ground_anchor_px": [
+    64,
+    119
+  ],
+  "footprint_size": [
+    1,
+    1
+  ],
+  "layers": [
+    {
+      "name": "Shadow",
+      "file": "layer_00.png"
+    },
+    {
+      "name": "Main",
+      "file": "layer_01.png"
+    },
+    {
+      "name": "Highlights",
+      "file": "layer_02.png"
+    }
+  ]
+}

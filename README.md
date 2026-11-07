@@ -24,6 +24,7 @@ The package does not contain `.git/` or `.godot/`.
 - Separate grid projection, occupancy, camera and asset-definition resources.
 - World object anchors and selection areas are independent of grid cell dimensions.
 - Pocket Worlds Art Studio editor plugin for pixel painting, layers, palettes, source saving and PNG/resource export.
+- First real transparent PNG collection: Old Oak, Moonpetal Plant and Mossy Rock, with editable source layers and asset definitions.
 - Tap-to-inspect contextual object interactions.
 - Basic inventory, XP and Sanctuary levels.
 - Home interior with Field Guide, Alchemy Table, Workbench and Creature Nook hubs.
@@ -48,7 +49,7 @@ Progress is saved automatically in the user's Godot data directory.
 
 ## Important limitations
 
-- The world currently uses explicitly temporary debug silhouettes and debug ground polygons. These are for projection, scale and input testing only; they are not production artwork.
+- Old Oak, Moonpetal Plant and Mossy Rock are now real transparent PNG sprites with editable source layers. Most other world objects and the ground are still temporary debug silhouettes/polygons.
 - Art Studio is an initial MVP. It currently provides a 128 × 128 canvas, brush/eraser/eyedropper, layers, palette selection, source save/load, PNG export and asset metadata export. Advanced selection, fill, shape and animation editing are not implemented yet.
 - Object placement is restricted to predefined demonstration slots; a full drag-to-place editor is a later checkpoint.
 - Discovery interactions are authored examples, not a generalized quest or ecology simulation.
@@ -64,7 +65,15 @@ Progress is saved automatically in the user's Godot data directory.
 4. Paint on the transparent canvas, add/select layers and choose palette colors.
 5. Use **Save Source** to retain editable layers, or **Export PNG** to create a runtime PNG and `.tres` asset definition under `assets/`.
 
-The plugin is not enabled automatically so a broken editor tool cannot prevent the game itself from opening.
+The current project configuration enables the plugin. It can be disabled under Project Settings → Plugins if you need to isolate an editor-tool issue.
+
+## First PNG asset collection
+
+See `assets/README.md` for the asset IDs, ground anchors, footprints and Art Studio editing steps. The first three sprites are integrated into the Sanctuary and Whispering Woods. Run `scenes/tests/asset_collection_regression.tscn` with F6; expected output:
+
+```
+ASSET COLLECTION REGRESSION PASS
+```
 
 ## Verification
 

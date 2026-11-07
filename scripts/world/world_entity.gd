@@ -3,22 +3,49 @@ extends Node2D
 
 var definition: PWAssetDefinition
 var instance_id: StringName = &""
+var object_id: String = ""
+var display_name: String = ""
 var grid_anchor: Vector2i = Vector2i.ZERO
+var selection_size: Vector2 = Vector2(100.0, 100.0)
+var selected: bool = false
+var interactable: bool = true
 
 var _sprite: Sprite2D
 var _animated_sprite: AnimatedSprite2D
 
-func configure(next_definition: PWAssetDefinition, next_instance_id: StringName, next_grid_anchor: Vector2i) -> void:
+func configure(
+	next_definition: PWAssetDefinition,
+	next_instance_id: StringName,
+	next_grid_anchor: Vector2i,
+	next_selection_size: Vector2 = Vector2(100.0, 100.0)
+) -> void:
 	definition = next_definition
 	instance_id = next_instance_id
+	object_id = String(next_instance_id)
 	grid_anchor = next_grid_anchor
+	selection_size = next_selection_size
+	display_name = definition.display_name if definition != null else object_id
 	_rebuild_visual()
 
-# Keep this Node2D's origin on the object's ground contact point.
-# Its parent sorts this origin by Y; the sprite itself is offset above it.
+# The Node2D origin is the bottom-center ground contact point used by the parent's Y-sort.
+# The sprite is offset upward from this point using the artwork's pixel anchor.
 func set_ground_position(world_position: Vector2) -> void:
 	var depth_adjustment := definition.sort_y_offset if definition != null else 0.0
 	position = world_position + Vector2(0.0, depth_adjustment)
+
+func get_selection_rect() -> Rect2:
+	return Rect2(Vector2(-selection_size.x * 0.5, -selection_size.y), selection_size)
+
+func _draw() -> void:
+	if not selected:
+		return
+	var radius_x := maxf(23.0, selection_size.x * 0.28)
+	var radius_y := maxf(8.0, selection_size.y * 0.075)
+	var points := PackedVector2Array()
+	for index in range(33):
+		var angle := TAU * float(index) / 32.0
+		points.append(Vector2(cos(angle) * radius_x, sin(angle) * radius_y + 2.0))
+	draw_polyline(points, Color("f2d58a"), 2.0, true)
 
 func _rebuild_visual() -> void:
 	for child in get_children():

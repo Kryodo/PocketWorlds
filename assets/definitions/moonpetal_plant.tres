@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PWAssetDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/pw_asset_definition.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+asset_id = &"moonpetal_plant"
+display_name = "Moonpetal Plant"
+category = &"plant"
+tags = Array[StringName]([&"plant", &"flower", &"moonpetal", &"woodland"])
+texture_path = "res://assets/sprites/moonpetal_plant.png"
+texture_size_px = Vector2i(128, 128)
+ground_anchor_px = Vector2(64, 119)
+footprint_size = Vector2i(1, 1)

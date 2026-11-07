@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PWAssetDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/pw_asset_definition.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+asset_id = &"mossy_rock"
+display_name = "Mossy Rock"
+category = &"rock"
+tags = Array[StringName]([&"rock", &"stone", &"moss", &"woodland"])
+texture_path = "res://assets/sprites/mossy_rock.png"
+texture_size_px = Vector2i(128, 128)
+ground_anchor_px = Vector2(64, 116)
+footprint_size = Vector2i(1, 1)

@@ -462,6 +462,8 @@ func _get_object_action_info(object_id: String) -> Dictionary:
 		"old_oak":
 			var listened := GameState.has_flag("old_oak_inspected")
 			return {"title": "Old Oak", "description": "A sturdy old tree. Tiny motes drift around its roots." if not listened else "The old tree hums softly in the breeze.", "action": "LISTEN" if not listened else "ALREADY LISTENED", "disabled": listened}
+		"moonpetal_plant":
+			return {"title": "Moonpetal Plant", "description": "A small woodland plant with pale violet blossoms. Its leaves catch the light.", "action": "INSPECT"}
 		"berry_bush":
 			var picked := GameState.has_flag("berries_harvested")
 			return {"title": "Berry Bush", "description": "A few ripe berries are ready to collect." if not picked else "The bush needs a little time before it bears fruit again.", "action": "HARVEST BERRIES" if not picked else "ALREADY HARVESTED", "disabled": picked}
@@ -509,6 +511,8 @@ func _perform_selected_action() -> void:
 				GameState.unlock_discovery("old_oak_motes", "Motes Beneath the Oak", "Tiny lights gather around the roots of the Old Oak.")
 				GameState.add_experience(3)
 				_show_toast("You pause and listen to the old tree.")
+		"moonpetal_plant":
+			_show_toast("The tiny blossoms sway softly.")
 		"berry_bush":
 			if not GameState.has_flag("berries_harvested"):
 				GameState.set_flag("berries_harvested", true)
