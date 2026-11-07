@@ -5,7 +5,7 @@ const PANEL_GAP := 120.0
 const IMPORTER := preload("res://scripts/world/ai_woodland_asset_importer.gd")
 
 func _ready() -> void:
-	// Refresh this isolated experiment from the untouched JPG on each review run.
+	# Refresh this isolated experiment from the untouched JPG on each review run.
 	var result: Dictionary = IMPORTER.generate_all_assets(true)
 	var errors: Array = result.get("errors", [])
 	if not errors.is_empty():
