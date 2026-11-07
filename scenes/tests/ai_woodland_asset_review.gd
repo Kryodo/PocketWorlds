@@ -68,8 +68,8 @@ func _build_ai_panel(projection: GridProjection, panel_offset: Vector2) -> void:
 		"ai_woodland_bush": Vector2i(4, 0),
 		"ai_woodland_flowering_plant": Vector2i(6, 0),
 		"ai_woodland_leafy_plant": Vector2i(6, 3),
-		"ai_woodland_mossy_boulder": Vector2i(3, 3),
-		"ai_woodland_fallen_log": Vector2i(0, 4)
+		"ai_woodland_mossy_boulder": Vector2i(4, 3),
+		"ai_woodland_fallen_log": Vector2i(1, 3)
 	}
 
 	for spec in IMPORTER.get_asset_specs():
