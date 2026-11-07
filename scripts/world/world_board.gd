@@ -102,26 +102,8 @@ func _build_input_overlay() -> void:
 	_input_overlay.gui_input.connect(_on_gui_input)
 	add_child(_input_overlay)
 
-	var toolbar := HBoxContainer.new()
-	toolbar.name = "ProjectionToolbar"
-	toolbar.position = Vector2(12, 12)
-	toolbar.add_theme_constant_override("separation", 6)
-	_input_overlay.add_child(toolbar)
-
-	var three_quarter_button := Button.new()
-	three_quarter_button.text = "THREE-QUARTER"
-	three_quarter_button.custom_minimum_size = Vector2(154, 48)
-	three_quarter_button.pressed.connect(func() -> void: _set_projection(GridProjection.ProjectionMode.THREE_QUARTER))
-	toolbar.add_child(three_quarter_button)
-
-	var isometric_button := Button.new()
-	isometric_button.text = "ISOMETRIC"
-	isometric_button.custom_minimum_size = Vector2(112, 48)
-	isometric_button.pressed.connect(func() -> void: _set_projection(GridProjection.ProjectionMode.ISOMETRIC))
-	toolbar.add_child(isometric_button)
-
 	_projection_label = Label.new()
-	_projection_label.text = "32 × 32 WORLD  ·  DEBUG VISUALS"
+	_projection_label.text = "3/4 TOP-DOWN · ISOMETRIC GRID  ·  32 × 32 DEBUG WORLD"
 	_projection_label.position = Vector2(14, 66)
 	_projection_label.add_theme_color_override("font_color", Color("f2ead4"))
 	_projection_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.75))
@@ -177,14 +159,6 @@ func _rebuild_entities() -> void:
 		entity.position = _projection.cell_center(cell)
 		_objects_root.add_child(entity)
 		_entity_nodes.append(entity)
-
-func _set_projection(next_mode: int) -> void:
-	_projection.mode = next_mode
-	_selected_cell = Vector2i(-1, -1)
-	_apply_world()
-	_center_camera()
-	if _projection_label != null:
-		_projection_label.text = ("THREE-QUARTER" if next_mode == GridProjection.ProjectionMode.THREE_QUARTER else "ISOMETRIC") + "  ·  32 × 32 DEBUG WORLD"
 
 func _center_camera() -> void:
 	if _camera == null:

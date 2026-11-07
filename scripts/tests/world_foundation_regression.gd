@@ -8,20 +8,14 @@ func _ready() -> void:
 
 func _test_projection_round_trip() -> void:
 	var projection := GridProjection.new()
-	var modes: Array[int] = [
-		GridProjection.ProjectionMode.THREE_QUARTER,
-		GridProjection.ProjectionMode.ISOMETRIC
-	]
-	for mode in modes:
-		projection.mode = mode
-		for y in range(32):
-			for x in range(32):
-				var expected := Vector2i(x, y)
-				var world_center := projection.cell_center(expected)
-				var actual := projection.world_to_grid(world_center)
-				assert(actual == expected, "Grid projection failed round-trip at %s in mode %d." % [expected, mode])
-		var bounds := projection.get_map_bounds(Vector2i(32, 32))
-		assert(bounds.size.x > 0.0 and bounds.size.y > 0.0, "Projection returned invalid map bounds.")
+	for y in range(32):
+		for x in range(32):
+			var expected := Vector2i(x, y)
+			var world_center := projection.cell_center(expected)
+			var actual := projection.world_to_grid(world_center)
+			assert(actual == expected, "Grid projection failed round-trip at %s." % expected)
+	var bounds := projection.get_map_bounds(Vector2i(32, 32))
+	assert(bounds.size.x > 0.0 and bounds.size.y > 0.0, "Projection returned invalid map bounds.")
 
 func _test_grid_footprints() -> void:
 	var grid := WorldGridData.new()

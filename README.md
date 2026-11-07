@@ -20,7 +20,7 @@ The package does not contain `.git/` or `.godot/`.
 - Landscape-first 1280 × 720 logical reference viewport (Godot 4.7 Mobile renderer).
 - Sanctuary and Whispering Woods prototype worlds on a 32 × 32 projected grid.
 - Mouse/touch map panning and pinch/wheel zoom using an isolated world SubViewport and Camera2D.
-- Runtime projection comparison: three-quarter and isometric-style cell layouts.
+- One selected 2:1 diamond grid with a three-quarter top-down/isometric hybrid presentation.
 - Separate grid projection, occupancy, camera and asset-definition resources.
 - World object anchors and selection areas are independent of grid cell dimensions.
 - Pocket Worlds Art Studio editor plugin for pixel painting, layers, palettes, source saving and PNG/resource export.

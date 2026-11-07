@@ -1,49 +1,38 @@
 class_name GridProjection
 extends RefCounted
 
-enum ProjectionMode {
-	THREE_QUARTER,
-	ISOMETRIC
-}
-
-var mode: int = ProjectionMode.THREE_QUARTER
+# Pocket Worlds uses a 2:1 diamond ground grid with three-quarter-view artwork.
+const AXIS_A := Vector2(48.0, 24.0)
+const AXIS_B := Vector2(-48.0, 24.0)
 
 func get_axis_a() -> Vector2:
-	if mode == ProjectionMode.ISOMETRIC:
-		return Vector2(48.0, 24.0)
-	return Vector2(54.0, 16.0)
+	return AXIS_A
 
 func get_axis_b() -> Vector2:
-	if mode == ProjectionMode.ISOMETRIC:
-		return Vector2(-48.0, 24.0)
-	return Vector2(-38.0, 38.0)
+	return AXIS_B
 
 func grid_to_world(cell: Vector2i, origin: Vector2 = Vector2.ZERO) -> Vector2:
-	return origin + get_axis_a() * cell.x + get_axis_b() * cell.y
+	return origin + AXIS_A * cell.x + AXIS_B * cell.y
 
 func cell_center(cell: Vector2i, origin: Vector2 = Vector2.ZERO) -> Vector2:
-	return grid_to_world(cell, origin) + (get_axis_a() + get_axis_b()) * 0.5
+	return grid_to_world(cell, origin) + (AXIS_A + AXIS_B) * 0.5
 
 func world_to_grid(world_position: Vector2, origin: Vector2 = Vector2.ZERO) -> Vector2i:
 	var local_position := world_position - origin
-	var axis_a := get_axis_a()
-	var axis_b := get_axis_b()
-	var determinant := axis_a.x * axis_b.y - axis_a.y * axis_b.x
+	var determinant := AXIS_A.x * AXIS_B.y - AXIS_A.y * AXIS_B.x
 	if is_zero_approx(determinant):
 		return Vector2i(-1, -1)
-	var grid_x := (local_position.x * axis_b.y - local_position.y * axis_b.x) / determinant
-	var grid_y := (axis_a.x * local_position.y - axis_a.y * local_position.x) / determinant
+	var grid_x := (local_position.x * AXIS_B.y - local_position.y * AXIS_B.x) / determinant
+	var grid_y := (AXIS_A.x * local_position.y - AXIS_A.y * local_position.x) / determinant
 	return Vector2i(floori(grid_x), floori(grid_y))
 
 func get_cell_polygon(cell: Vector2i, origin: Vector2 = Vector2.ZERO) -> PackedVector2Array:
 	var point := grid_to_world(cell, origin)
-	var axis_a := get_axis_a()
-	var axis_b := get_axis_b()
 	return PackedVector2Array([
 		point,
-		point + axis_a,
-		point + axis_a + axis_b,
-		point + axis_b
+		point + AXIS_A,
+		point + AXIS_A + AXIS_B,
+		point + AXIS_B
 	])
 
 func get_map_bounds(map_size: Vector2i, origin: Vector2 = Vector2.ZERO) -> Rect2:
