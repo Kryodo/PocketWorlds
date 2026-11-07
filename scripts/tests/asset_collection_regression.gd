@@ -13,7 +13,7 @@ const GROUND_ASSET_IDS: Array[String] = [
 func _ready() -> void:
 	var generation: Dictionary = ForestGroundTileGenerator.generate_all_assets()
 	var generation_errors: Array = generation.get("errors", [])
-	assert(generation_errors.is_empty(), "Ground tile generation reported errors: %s" % generation_errors)
+	assert(generation_errors.is_empty(), "Ground tile generation reported errors: " + str(generation_errors))
 	for asset_id in ASSET_IDS:
 		_test_object_asset(asset_id)
 	for asset_id in GROUND_ASSET_IDS:
