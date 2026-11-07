@@ -14,6 +14,12 @@ func configure(next_definition: PWAssetDefinition, next_instance_id: StringName,
 	grid_anchor = next_grid_anchor
 	_rebuild_visual()
 
+# Keep this Node2D's origin on the object's ground contact point.
+# Its parent sorts this origin by Y; the sprite itself is offset above it.
+func set_ground_position(world_position: Vector2) -> void:
+	var depth_adjustment := definition.sort_y_offset if definition != null else 0.0
+	position = world_position + Vector2(0.0, depth_adjustment)
+
 func _rebuild_visual() -> void:
 	for child in get_children():
 		child.queue_free()
@@ -22,7 +28,6 @@ func _rebuild_visual() -> void:
 	if definition == null:
 		return
 
-	y_sort_origin = roundi(definition.sort_y_offset)
 	z_index = definition.sort_z_index
 
 	if definition.sprite_frames != null and definition.sprite_frames.get_animation_names().size() > 0:

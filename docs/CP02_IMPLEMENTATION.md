@@ -17,7 +17,7 @@
 - Replaced the 9 × 9 square board with a 32 × 32 projected test world.
 - Added a dedicated SubViewport and Camera2D so world movement and zoom do not transform the HUD.
 - Added separate camera pan/zoom handling and mouse/touch gesture handling.
-- Added projection switching between the current three-quarter candidate and an isometric-style candidate.
+- Adopted one 2:1 diamond ground projection with three-quarter-view object artwork; the redundant projection toggle was removed after user testing found the candidates indistinguishable.
 - Added grid-to-world, world-to-grid, cell polygon and map-bounds functions.
 - Added a grid occupancy model with rectangular and irregular footprints.
 - Added object-level footprint metadata in the CP02 debug map.
@@ -53,7 +53,7 @@ Expected output:
 WORLD FOUNDATION REGRESSION PASS
 ```
 
-The test verifies cell-center round trips in both projections, map bounds, multi-cell occupancy, overlap rejection, same-instance validation, edge rejection, release and irregular footprints.
+The test verifies cell-center round trips for all 1,024 cells in the selected projection, map bounds, multi-cell occupancy, overlap rejection, same-instance validation, edge rejection, release and irregular footprints.
 
 ## Enable Art Studio
 
