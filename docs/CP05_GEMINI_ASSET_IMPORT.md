@@ -63,7 +63,7 @@ The first run creates:
 - `assets/source_art/ai_woodland_*/layers/layer_00.png`
 - `assets/source_art/ai_woodland_*/layers/layer_01.png`
 
-Existing extracted files are preserved by default. To regenerate from the source JPG after changing crops or extraction settings, remove only the corresponding `ai_woodland_*` generated files first. Keep the original `art_inbox/` JPG unchanged.
+The dedicated review scene currently calls the importer with overwrite enabled, so every F6 run refreshes all six experimental PNGs, definitions and source documents from the original JPG. This intentionally removes stale exports from earlier extraction attempts. Do not make manual edits to the generated files until the extraction settings are accepted. The original `art_inbox/` JPG is never modified.
 
 ## Review checklist
 
