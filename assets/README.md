@@ -39,3 +39,16 @@ The current editor canvas is 128 × 128. Keep the ground anchor and footprint co
 Run `scenes/tests/generate_forest_ground_tiles.tscn` with F6 to generate these runtime PNGs, their `.tres` definitions and editable three-layer source documents. Existing files are preserved by default. The generator is also available from the Art Studio toolbar.
 
 The tiles are generated with Godot's `Image` API and saved as ordinary static PNGs. The runtime renderer uses those PNGs when available and has an in-memory generated-texture fallback before the files have been created. Each source document separates a base-art layer from transparent shadow and highlight paintover layers.
+
+## CP04 artistic validation prototypes
+
+The artistic validation experiment is deliberately kept separate from the first asset collection. Run `scenes/tests/artistic_validation_review.tscn` with F6 to generate and compare:
+
+- `validation_oak` — 256 × 256 canvas, (128, 244) ground anchor, 2 × 2 footprint.
+- `validation_plant` — 128 × 128 canvas, (64, 122) ground anchor, 1 × 1 footprint.
+- `validation_rock` — 160 × 112 canvas, (80, 102) ground anchor, 1 × 1 footprint.
+- `validation_ground_patch` — a single continuous 7 × 5 projected ground surface without visible per-cell diamond borders.
+
+The three object prototypes use separate ground-shadow, base-art and directional-highlight layers. The ground patch has separate base, winding path and terrain-detail layers. All files use the existing asset-definition and source-document conventions. They are experimental review assets, not replacements for the existing sprites or CP03 tiles.
+
+See `docs/CP04_ARTISTIC_VALIDATION.md` for evaluation criteria and the test setup.
