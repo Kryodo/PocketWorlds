@@ -47,7 +47,7 @@ func _draw_grid_size_panel() -> void:
 	var candidate_center := Vector2(170.0, 250.0)
 	_draw_canvas_diamond(candidate_center, 128.0, 64.0, GRID_FILL, GRID_LINE)
 	draw_circle(candidate_center, 5.0, ACCENT)
-	draw_circle(candidate_center, 10.0, Color(ACCENT, 0.35), false, 1.5, true)
+	draw_circle(candidate_center, 10.0, Color(0.84, 0.73, 0.48, 0.35), false, 1.5, true)
 
 	# Axis vectors are shown from the top grid intersection.
 	var top := candidate_center + Vector2(0.0, -32.0)
@@ -120,21 +120,21 @@ func _draw_footprint(origin: Vector2, footprint: Vector2i, scale: float) -> void
 func _draw_visual_scale_examples() -> void:
 	# Small 1×1 plant: a modest sprite above its single-cell ground footprint.
 	_draw_canvas_diamond(Vector2(1106.0, 213.0), 64.0, 32.0, GRID_FILL, GRID_LINE)
-	draw_line(Vector2(1106.0, 207.0), Vector2(1106.0, 158.0), Color("74a96a"), 5.0, true)
+	draw_line(Vector2(1106.0, 213.0), Vector2(1106.0, 158.0), Color("74a96a"), 5.0, true)
 	draw_line(Vector2(1106.0, 188.0), Vector2(1089.0, 173.0), Color("74a96a"), 4.0, true)
 	draw_line(Vector2(1106.0, 181.0), Vector2(1122.0, 165.0), Color("74a96a"), 4.0, true)
 	draw_circle(Vector2(1106.0, 151.0), 10.0, Color("e9a7c8"))
 
 	# 2×2 tree: the canopy intentionally overhangs its occupied ground cells.
-	_draw_footprint(Vector2(1058.0, 374.0), Vector2i(2, 2), 0.34)
-	_draw_ellipse(Vector2(1092.0, 325.0), Vector2(67.0, 49.0), Color("397b50"))
-	_draw_ellipse(Vector2(1064.0, 319.0), Vector2(38.0, 31.0), Color("599454"))
-	_draw_ellipse(Vector2(1127.0, 325.0), Vector2(34.0, 29.0), Color("4b894e"))
-	draw_rect(Rect2(1085.0, 334.0, 14.0, 42.0), Color("98633c"), true)
-	_draw_ellipse(Vector2(1092.0, 374.0), Vector2(27.0, 7.0), Color(0.05, 0.09, 0.06, 0.45))
+	_draw_footprint(Vector2(1058.0, 352.0), Vector2i(2, 2), 0.34)
+	_draw_ellipse(Vector2(1058.0, 302.0), Vector2(67.0, 49.0), Color("397b50"))
+	_draw_ellipse(Vector2(1030.0, 296.0), Vector2(38.0, 31.0), Color("599454"))
+	_draw_ellipse(Vector2(1093.0, 302.0), Vector2(34.0, 29.0), Color("4b894e"))
+	draw_rect(Rect2(1051.0, 332.0, 14.0, 42.0), Color("98633c"), true)
+	_draw_ellipse(Vector2(1058.0, 375.0), Vector2(27.0, 7.0), Color(0.05, 0.09, 0.06, 0.45))
 
 	# 3×3 cottage: an architectural landmark, clearly larger than a compact prop.
-	_draw_footprint(Vector2(1000.0, 574.0), Vector2i(3, 3), 0.27)
+	_draw_footprint(Vector2(1092.0, 500.0), Vector2i(3, 3), 0.27)
 	draw_colored_polygon(PackedVector2Array([
 		Vector2(1023.0, 526.0), Vector2(1092.0, 476.0),
 		Vector2(1162.0, 526.0), Vector2(1154.0, 540.0),
@@ -253,8 +253,8 @@ func _validate_candidate_projection() -> void:
 			"Candidate footprint bounds failed for %s." % footprint
 		)
 
-	assert(Vector2(128.0, 64.0) * 0.5 == Vector2(64.0, 32.0), "1× PNG centre anchor must be (64,32).")
-	assert(Vector2(256.0, 128.0) * 0.5 == Vector2(128.0, 64.0), "2× PNG centre anchor must be (128,64).")
+	assert((Vector2(128.0, 64.0) * 0.5).is_equal_approx(Vector2(64.0, 32.0)), "1× PNG centre anchor must be (64,32).")
+	assert((Vector2(256.0, 128.0) * 0.5).is_equal_approx(Vector2(128.0, 64.0)), "2× PNG centre anchor must be (128,64).")
 
 func _candidate_grid_to_world(cell: Vector2i) -> Vector2:
 	return CANDIDATE_AXIS_A * float(cell.x) + CANDIDATE_AXIS_B * float(cell.y)
