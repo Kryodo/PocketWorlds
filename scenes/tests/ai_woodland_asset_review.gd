@@ -108,6 +108,14 @@ func _add_imported_asset(
 
 	var image := IMPORTER.load_generated_image(asset_id)
 	assert(image.get_width() > 1 and image.get_height() > 1, "Could not load extracted PNG: %s" % asset_id)
+	assert(image.get_pixel(0, 0).a < 0.10, "Cyan background was not removed from asset corner: %s" % asset_id)
+	var visible_bounds := image.get_used_rect()
+	assert(visible_bounds.size.x > 8 and visible_bounds.size.y > 8, "Extracted artwork has no usable visible bounds: %s" % asset_id)
+	assert(
+		definition.texture_filter_mode == PWAssetDefinition.TextureFilterMode.LINEAR,
+		"Imported toon asset must use LINEAR filtering: %s" % asset_id
+	)
+
 	var texture := ImageTexture.create_from_image(image)
 
 	var object_root := Node2D.new()
