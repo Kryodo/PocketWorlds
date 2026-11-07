@@ -127,11 +127,11 @@ func _draw_visual_scale_examples() -> void:
 
 	# 2×2 tree: the canopy intentionally overhangs its occupied ground cells.
 	_draw_footprint(Vector2(1058.0, 374.0), Vector2i(2, 2), 0.34)
-	draw_ellipse(Vector2(1092.0, 325.0), Vector2(67.0, 49.0), Color("397b50"))
-	draw_ellipse(Vector2(1064.0, 319.0), Vector2(38.0, 31.0), Color("599454"))
-	draw_ellipse(Vector2(1127.0, 325.0), Vector2(34.0, 29.0), Color("4b894e"))
+	_draw_ellipse(Vector2(1092.0, 325.0), Vector2(67.0, 49.0), Color("397b50"))
+	_draw_ellipse(Vector2(1064.0, 319.0), Vector2(38.0, 31.0), Color("599454"))
+	_draw_ellipse(Vector2(1127.0, 325.0), Vector2(34.0, 29.0), Color("4b894e"))
 	draw_rect(Rect2(1085.0, 334.0, 14.0, 42.0), Color("98633c"), true)
-	draw_ellipse(Vector2(1092.0, 374.0), Vector2(27.0, 7.0), Color(0.05, 0.09, 0.06, 0.45))
+	_draw_ellipse(Vector2(1092.0, 374.0), Vector2(27.0, 7.0), Color(0.05, 0.09, 0.06, 0.45))
 
 	# 3×3 cottage: an architectural landmark, clearly larger than a compact prop.
 	_draw_footprint(Vector2(1000.0, 574.0), Vector2i(3, 3), 0.27)
