@@ -10,9 +10,9 @@ const MAX_ZOOM := 1.65
 
 const WORLD_OBJECTS := {
 	"sanctuary": [
-		{"id": "old_oak", "name": "Old Oak", "x": 8, "y": 7, "asset_id": "old_oak", "kind": "tree", "footprint_size": Vector2i(2, 2), "selection_size": Vector2(112, 132), "visual_scale": 1.45},
+		{"id": "old_oak", "name": "Old Oak", "x": 8, "y": 7, "asset_id": "old_oak", "kind": "tree", "footprint_size": Vector2i(2, 2), "selection_size": Vector2(214, 220), "visual_scale": 1.45},
 		{"id": "berry_bush", "name": "Berry Bush", "x": 19, "y": 7, "kind": "bush", "footprint_size": Vector2i(2, 2), "selection_size": Vector2(82, 62), "visual_scale": 1.2},
-		{"id": "moonpetal_plant", "name": "Moonpetal Plant", "x": 24, "y": 14, "asset_id": "moonpetal_plant", "kind": "plant", "footprint_size": Vector2i(1, 1), "selection_size": Vector2(72, 78)},
+		{"id": "moonpetal_plant", "name": "Moonpetal Plant", "x": 24, "y": 14, "asset_id": "moonpetal_plant", "kind": "plant", "footprint_size": Vector2i(1, 1), "selection_size": Vector2(92, 100)},
 		{"id": "pond", "name": "Quiet Pond", "x": 15, "y": 15, "kind": "pond", "footprint_size": Vector2i(3, 2), "selection_size": Vector2(128, 74)},
 		{"id": "fallen_log", "name": "Fallen Log", "x": 7, "y": 22, "kind": "log", "footprint_size": Vector2i(2, 1), "selection_size": Vector2(82, 42)},
 		{"id": "garden_bed", "name": "Garden Bed", "x": 19, "y": 22, "kind": "garden", "footprint_size": Vector2i(2, 2), "selection_size": Vector2(76, 54)},
@@ -23,7 +23,7 @@ const WORLD_OBJECTS := {
 		{"id": "ancient_marker", "name": "Ancient Marker", "x": 16, "y": 7, "kind": "marker", "footprint_size": Vector2i(1, 1), "selection_size": Vector2(76, 90)},
 		{"id": "moonseed_patch", "name": "Moonpetal Patch", "x": 8, "y": 22, "kind": "flowers", "footprint_size": Vector2i(2, 2), "selection_size": Vector2(94, 66)},
 		{"id": "crystal_cache", "name": "Crystal Cache", "x": 22, "y": 22, "kind": "crystal", "footprint_size": Vector2i(1, 1), "selection_size": Vector2(70, 86)},
-		{"id": "mossy_stone", "name": "Mossy Stone", "x": 22, "y": 12, "asset_id": "mossy_rock", "kind": "stone", "footprint_size": Vector2i(1, 1), "selection_size": Vector2(78, 64)}
+		{"id": "mossy_stone", "name": "Mossy Stone", "x": 22, "y": 12, "asset_id": "mossy_rock", "kind": "stone", "footprint_size": Vector2i(1, 1), "selection_size": Vector2(118, 108)}
 	]
 }
 
@@ -33,7 +33,7 @@ var _grid_data: WorldGridData
 var _world_viewport: SubViewport
 var _camera: Camera2D
 var _camera_controller: WorldCameraController
-var _ground: WorldDebugGround
+var _ground: WorldGroundTiles
 var _objects_root: Node2D
 var _input_overlay: Control
 var _projection_label: Label
@@ -76,8 +76,8 @@ func _build_world_viewport() -> void:
 	world_root.name = "WorldRoot"
 	_world_viewport.add_child(world_root)
 
-	_ground = WorldDebugGround.new()
-	_ground.name = "DebugGround"
+	_ground = WorldGroundTiles.new()
+	_ground.name = "GroundTiles"
 	world_root.add_child(_ground)
 
 	_objects_root = Node2D.new()
@@ -104,7 +104,7 @@ func _build_input_overlay() -> void:
 	add_child(_input_overlay)
 
 	_projection_label = Label.new()
-	_projection_label.text = "3/4 TOP-DOWN · ISOMETRIC GRID  ·  32 × 32 DEBUG WORLD"
+	_projection_label.text = "3/4 TOP-DOWN · 32 × 32 FOREST WORLD"
 	_projection_label.position = Vector2(14, 66)
 	_projection_label.add_theme_color_override("font_color", Color("f2ead4"))
 	_projection_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.75))
@@ -235,8 +235,7 @@ func _handle_tap(screen_position: Vector2) -> void:
 		elif entity is WorldDebugObject:
 			(entity as WorldDebugObject).selected = false
 		entity.queue_redraw()
-	_ground.selected_cell = cell
-	_ground.queue_redraw()
+	_ground.set_selected_cell(cell)
 	empty_tile_selected.emit(cell)
 
 func _select_entity(entity: Node2D) -> void:
@@ -247,8 +246,7 @@ func _select_entity(entity: Node2D) -> void:
 			(item as WorldDebugObject).selected = item == entity
 		item.queue_redraw()
 	_selected_cell = Vector2i(-1, -1)
-	_ground.selected_cell = _selected_cell
-	_ground.queue_redraw()
+	_ground.set_selected_cell(_selected_cell)
 	var object_id := ""
 	if entity is WorldEntity:
 		object_id = (entity as WorldEntity).object_id
