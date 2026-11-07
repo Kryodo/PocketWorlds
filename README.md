@@ -88,3 +88,6 @@ The first ground pass provides six generated, transparent diamond tiles: grass, 
 Run `scenes/tests/generate_forest_ground_tiles.tscn` with F6 to create the persistent PNGs, `.tres` definitions and three-layer Art Studio source documents. The generator preserves existing files by default. Review the integrated scale and terrain at `scenes/tests/asset_ground_review.tscn`, then run `scenes/tests/asset_collection_regression.tscn` with F6.
 
 The current ground artwork is a procedural starter texture set intended for in-game scale evaluation, not a final art pack. See `docs/CP03_ASSET_GROUND_REVIEW.md`.
+## CP04 — Artistic validation
+
+Run `scenes/tests/artistic_validation_review.tscn` with F6 to compare the existing object sprites and diamond ground tiles against an isolated pixel-cluster study. The study creates a larger oak, a small plant, a rock and a continuous 7 × 5 ground patch with editable source layers. It does not replace or modify the existing assets or gameplay. See `docs/CP04_ARTISTIC_VALIDATION.md` for the review criteria and generated-file locations.
