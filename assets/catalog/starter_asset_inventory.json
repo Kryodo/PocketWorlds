@@ -1,0 +1,335 @@
+{
+  "schema_version": 1,
+  "milestone": "CP06",
+  "status": "planned_not_approved",
+  "scope_note": "Starter validation content only. Expand the inventory as gameplay requires; do not create the full library.",
+  "worlds": [
+    "sanctuary",
+    "whispering_woods"
+  ],
+  "art_direction": {
+    "candidate": "casual_toon_2_5d",
+    "status": "not_locked"
+  },
+  "projection": {
+    "ratio": "2:1 dimetric",
+    "current": {
+      "cell_world_units": [
+        96,
+        48
+      ],
+      "axis_a": [
+        48,
+        24
+      ],
+      "axis_b": [
+        -48,
+        24
+      ]
+    },
+    "candidate": {
+      "cell_world_units": [
+        128,
+        64
+      ],
+      "axis_a": [
+        64,
+        32
+      ],
+      "axis_b": [
+        -64,
+        32
+      ],
+      "cell_center_world": [
+        64,
+        32
+      ],
+      "status": "preferred_candidate_not_implemented"
+    },
+    "source_pixel_note": "World-unit cell centre (64,32) differs from a 2x source tile pixel centre (128,64).",
+    "projected_footprint_bounds_world": "width=(columns+rows)*64; height=(columns+rows)*32"
+  },
+  "reference_deliverables": [
+    {
+      "id": "style_scale_reference",
+      "type": "calibration_sheet",
+      "required_examples": [
+        "large_tree",
+        "small_plant",
+        "rock",
+        "building",
+        "creature",
+        "ground_sample"
+      ],
+      "status": "not_created"
+    },
+    {
+      "id": "grid_footprint_reference",
+      "type": "technical_visual_guide",
+      "required_footprints": [
+        "1x1",
+        "1x2",
+        "2x2",
+        "2x3",
+        "3x3"
+      ],
+      "status": "not_created"
+    }
+  ],
+  "batches": [
+    {
+      "id": "G",
+      "name": "Ground and terrain",
+      "separate_from_object_sheets": true,
+      "candidate_source_tile_pixels": [
+        256,
+        128
+      ],
+      "candidate_world_cell": [
+        128,
+        64
+      ],
+      "assets": [
+        {
+          "id": "ground_grass_base",
+          "name": "Grass base",
+          "kind": "repeatable_base"
+        },
+        {
+          "id": "ground_grass_variants",
+          "name": "Grass variations",
+          "count": 2
+        },
+        {
+          "id": "ground_path_connections",
+          "name": "Dirt path connections",
+          "pieces": [
+            "straight",
+            "end",
+            "corner",
+            "t_junction",
+            "crossing"
+          ]
+        },
+        {
+          "id": "ground_rocky_moss",
+          "name": "Rocky and mossy ground",
+          "kind": "patch"
+        },
+        {
+          "id": "ground_pond_water",
+          "name": "Pond water",
+          "kind": "surface"
+        },
+        {
+          "id": "ground_pond_shoreline",
+          "name": "Pond shoreline transitions",
+          "pieces": [
+            "edge",
+            "corner"
+          ]
+        }
+      ],
+      "acceptance": [
+        "no_visible_tile_seams",
+        "path_pieces_connect",
+        "shoreline_transitions_join",
+        "no_visible_per_cell_grid_overlay"
+      ]
+    },
+    {
+      "id": "E",
+      "name": "Environmental objects",
+      "assets": [
+        {
+          "id": "starter_oak",
+          "name": "Large oak tree",
+          "footprint": [
+            2,
+            2
+          ],
+          "gameplay": "wood_harvest"
+        },
+        {
+          "id": "starter_berry_bush",
+          "name": "Berry bush",
+          "footprint": [
+            1,
+            1
+          ],
+          "gameplay": "berry_harvest"
+        },
+        {
+          "id": "starter_moonpetal",
+          "name": "Moonpetal plant",
+          "footprint": [
+            1,
+            1
+          ],
+          "gameplay": "plant_tend_harvest"
+        },
+        {
+          "id": "starter_leafy_ground_plant",
+          "name": "Small leafy ground plant",
+          "footprint": [
+            1,
+            1
+          ],
+          "gameplay": "scale_reference"
+        },
+        {
+          "id": "starter_mossy_boulder",
+          "name": "Mossy boulder",
+          "footprint": [
+            1,
+            1
+          ],
+          "gameplay": "ground_contact_reference"
+        },
+        {
+          "id": "starter_fallen_log",
+          "name": "Fallen log",
+          "footprint": "1x2_or_2x1_after_orientation_test",
+          "gameplay": "long_low_prop"
+        },
+        {
+          "id": "starter_ancient_marker",
+          "name": "Ancient marker",
+          "footprint": "1x1_or_1x2_after_placement_test",
+          "gameplay": "discovery_interaction"
+        },
+        {
+          "id": "starter_crystal_cache",
+          "name": "Crystal cache",
+          "footprint": [
+            1,
+            1
+          ],
+          "gameplay": "resource_discovery"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "name": "Buildings and structures",
+      "assets": [
+        {
+          "id": "starter_cottage",
+          "name": "Main Sanctuary cottage",
+          "footprint": [
+            3,
+            3
+          ],
+          "states": [
+            "base",
+            "upgraded"
+          ],
+          "gameplay": "home_landmark_visual_progression"
+        },
+        {
+          "id": "starter_workshop",
+          "name": "Workshop / crafting shed",
+          "footprint": [
+            2,
+            3
+          ],
+          "gameplay": "crafting_station"
+        },
+        {
+          "id": "starter_creature_habitat",
+          "name": "Creature habitat",
+          "footprint": [
+            2,
+            2
+          ],
+          "gameplay": "creature_home"
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "name": "Starter creature animation",
+      "assets": [
+        {
+          "id": "starter_creature",
+          "name": "One starter creature",
+          "footprint": [
+            1,
+            1
+          ],
+          "sprite_sheet": {
+            "columns": 4,
+            "rows": 3,
+            "total_frames": 12,
+            "frame_size": "set_after_scale_reference",
+            "row_order": [
+              "idle",
+              "walk",
+              "signature_interaction"
+            ],
+            "frames_per_animation": 4
+          },
+          "requirements": [
+            "identical_frame_canvas",
+            "stable_ground_baseline",
+            "fixed_camera_and_lighting",
+            "consistent_silhouette_and_proportions",
+            "no_frame_jitter"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "I",
+      "name": "Minimal item icons",
+      "assets": [
+        "wood",
+        "berry",
+        "moonpetal_seed",
+        "dew",
+        "moonstone",
+        "moonpetal_essence",
+        "rune_lantern"
+      ],
+      "purpose": "Test consistent asset import and UI-scale readability only."
+    }
+  ],
+  "first_review_scene_contents": [
+    "grass_area",
+    "connected_dirt_path",
+    "rocky_patch",
+    "pond_and_shoreline",
+    "cottage",
+    "workshop",
+    "creature_habitat",
+    "oak",
+    "berry_bush",
+    "moonpetal",
+    "small_plant",
+    "boulder",
+    "fallen_log",
+    "ancient_marker",
+    "crystal_cache",
+    "starter_creature_idle_and_walk",
+    "cottage_base_and_upgraded_states"
+  ],
+  "out_of_scope": [
+    "full_biome_library",
+    "multiple_creature_species",
+    "creature_evolution_catalogue",
+    "large_building_catalogue",
+    "full_furniture_collection",
+    "large_decorative_prop_collection",
+    "full_inventory_icon_library",
+    "all_possible_animation_states",
+    "complete_asset_management_suite"
+  ],
+  "production_rules": [
+    "Keep ground sheets separate from object sheets.",
+    "Use a shared style reference and a separate visual footprint guide for every category batch.",
+    "Do not ask Gemini to infer 1x1 or 3x3 from text alone.",
+    "Normalize visible artwork bounds, ground anchor and footprint independently.",
+    "Preserve every original source sheet and extraction mask.",
+    "Do not promote assets until extraction, scale, shadows and Godot integration pass review."
+  ]
+}
