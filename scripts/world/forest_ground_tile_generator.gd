@@ -149,7 +149,9 @@ static func _save_source_layers(asset_id: String, composite: Image, source_root:
 		"ground_anchor_px": [TILE_SIZE.x / 2, TILE_SIZE.y / 2],
 		"footprint_size": [1, 1],
 		"layers": [
-			{"name": layer["name"], "file": layer["file"]} for layer in layers
+			{"name": "Shadow Paintover", "file": "layer_00.png"},
+			{"name": "Base Art", "file": "layer_01.png"},
+			{"name": "Highlight Paintover", "file": "layer_02.png"}
 		]
 	}
 	var file := FileAccess.open(ProjectSettings.globalize_path(source_root + "/document.json"), FileAccess.WRITE)
@@ -165,4 +167,5 @@ static func _ensure_directory(res_path: String) -> void:
 static func _display_name(asset_id: String) -> String:
 	var readable := asset_id.trim_prefix("forest_").replace("_", " ")
 	return readable.capitalize()
+
 

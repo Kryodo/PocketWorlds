@@ -3,6 +3,7 @@ extends Window
 
 const CANVAS_SCRIPT := preload("res://addons/pocket_worlds_art_studio/art_canvas.gd")
 const ASSET_DEFINITION_SCRIPT := preload("res://scripts/world/pw_asset_definition.gd")
+const FOREST_GROUND_GENERATOR := preload("res://scripts/world/forest_ground_tile_generator.gd")
 var _document_size: Vector2i = Vector2i(128, 128)
 
 signal filesystem_changed
@@ -83,6 +84,7 @@ func _build_interface() -> void:
 	toolbar.add_child(_make_button("Load", _load_source))
 	toolbar.add_child(_make_button("Save Source", _save_source))
 	toolbar.add_child(_make_button("Export PNG", _export_asset, true))
+	toolbar.add_child(_make_button("Generate Ground PNGs", _generate_ground_assets))
 
 	var body := HBoxContainer.new()
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -122,7 +124,9 @@ func _build_interface() -> void:
 	_size_y = _make_spinbox(16, 2048, 128)
 	_size_x.value_changed.connect(_on_document_size_changed)
 	_size_y.value_changed.connect(_on_document_size_changed)
+	settings.add_child(_make_label("Width", 10))
 	settings.add_child(_size_x)
+	settings.add_child(_make_label("Height", 10))
 	settings.add_child(_size_y)
 
 	settings.add_child(_make_label("Ground anchor (px)", 12))
@@ -400,6 +404,18 @@ func _load_source() -> void:
 	_refresh_preview()
 	_status_label.text = "Loaded editable source: %s" % asset_id
 
+func _generate_ground_assets() -> void:
+	var result: Dictionary = FOREST_GROUND_GENERATOR.generate_all_assets()
+	var errors: Array = result.get("errors", [])
+	if not errors.is_empty():
+		_status_label.text = "Ground generation reported errors: %s" % String(errors[0])
+		push_error(_status_label.text)
+		return
+	filesystem_changed.emit()
+	var generated: Array = result.get("generated", [])
+	var skipped: Array = result.get("skipped", [])
+	_status_label.text = "Ground PNGs generated: %d · Existing assets preserved: %d" % [generated.size(), skipped.size()]
+
 func _export_asset() -> void:
 	if not _save_source():
 		return
@@ -430,3 +446,4 @@ func _export_asset() -> void:
 		return
 	filesystem_changed.emit()
 	_status_label.text = "Exported PNG and definition: %s" % asset_id
+

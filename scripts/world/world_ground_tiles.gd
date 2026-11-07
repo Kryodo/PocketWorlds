@@ -34,7 +34,6 @@ func _ensure_render_nodes() -> void:
 		_selection_outline.name = "SelectedCellOutline"
 		_selection_outline.width = 2.0
 		_selection_outline.default_color = Color("f2d58a")
-		_selection_outline.antialiased = true
 		_selection_outline.z_index = 100
 		add_child(_selection_outline)
 
@@ -65,7 +64,7 @@ func _get_tile_texture(asset_id: String) -> Texture2D:
 	var texture: Texture2D
 	if ResourceLoader.exists(texture_path):
 		texture = load(texture_path) as Texture2D
-	else:
+	if texture == null:
 		texture = ImageTexture.create_from_image(TILE_GENERATOR.create_image(asset_id))
 	_texture_cache[asset_id] = texture
 	return texture
@@ -89,7 +88,8 @@ func _get_tile_asset_id(cell: Vector2i) -> String:
 	return "forest_grass"
 
 func _is_path_cell(cell: Vector2i) -> bool:
-	if cell.y < 4 or cell.y > map_size.y - 5:
+	var margin := maxi(1, int(floor(float(map_size.y) * 0.12)))
+	if cell.y < margin or cell.y > map_size.y - margin - 1:
 		return false
 	var center_x := int(roundf(float(cell.y) * 0.56 + float(map_size.x) * 0.18))
 	return absi(cell.x - center_x) <= 1
@@ -104,4 +104,5 @@ func _update_selection_outline() -> void:
 	var points := projection.get_cell_polygon(selected_cell)
 	points.append(points[0])
 	_selection_outline.points = points
+
 
