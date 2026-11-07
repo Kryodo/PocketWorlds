@@ -38,70 +38,85 @@ func _build_shell() -> void:
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 18)
-	margin.add_theme_constant_override("margin_right", 18)
-	margin.add_theme_constant_override("margin_top", 16)
-	margin.add_theme_constant_override("margin_bottom", 16)
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_bottom", 12)
 	add_child(margin)
 
 	var layout := VBoxContainer.new()
-	layout.add_theme_constant_override("separation", 10)
+	layout.add_theme_constant_override("separation", 8)
 	margin.add_child(layout)
 
-	var header := _make_panel(Color("253a37"), Color("526b5a"), 14)
-	header.custom_minimum_size = Vector2(0, 82)
+	var header := _make_panel(Color("253a37"), Color("526b5a"), 12)
+	header.custom_minimum_size = Vector2(0, 64)
 	layout.add_child(header)
 	var header_row := HBoxContainer.new()
-	header_row.add_theme_constant_override("separation", 10)
+	header_row.add_theme_constant_override("separation", 12)
 	header.add_child(header_row)
 
 	var title_column := VBoxContainer.new()
 	title_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_column.alignment = BoxContainer.ALIGNMENT_CENTER
 	header_row.add_child(title_column)
-	var game_title := _make_label("POCKET WORLDS", 23, TEXT_MAIN, true)
-	title_column.add_child(game_title)
-	_header_level = _make_label("SANCTUARY LEVEL 1 · 0 XP", 12, TEXT_MUTED, false)
+	title_column.add_child(_make_label("POCKET WORLDS", 21, TEXT_MAIN, true))
+	_header_level = _make_label("SANCTUARY LEVEL 1 · 0 XP", 11, TEXT_MUTED, false)
 	title_column.add_child(_header_level)
 	_header_inventory = _make_label("COIN 24   DEW 2   WOOD 0", 12, ACCENT, true)
 	_header_inventory.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_header_inventory.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	header_row.add_child(_header_inventory)
 
-	_view_title = _make_label("YOUR SANCTUARY", 20, TEXT_MAIN, true)
-	layout.add_child(_view_title)
-	_view_subtitle = _make_label("A little world waiting to be shaped.", 13, TEXT_MUTED, false)
+	var view_heading := HBoxContainer.new()
+	view_heading.add_theme_constant_override("separation", 12)
+	layout.add_child(view_heading)
+	_view_title = _make_label("YOUR SANCTUARY", 18, TEXT_MAIN, true)
+	view_heading.add_child(_view_title)
+	_view_subtitle = _make_label("A little world waiting to be shaped.", 12, TEXT_MUTED, false)
+	_view_subtitle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_view_subtitle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_view_subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	layout.add_child(_view_subtitle)
+	view_heading.add_child(_view_subtitle)
 
-	_toast_label = _make_label("", 13, Color("f2d58a"), true)
+	_toast_label = _make_label("", 12, Color("f2d58a"), true)
 	_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_toast_label.visible = false
 	layout.add_child(_toast_label)
 
+	var body := HBoxContainer.new()
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.add_theme_constant_override("separation", 10)
+	layout.add_child(body)
+
 	_screen_slot = VBoxContainer.new()
+	_screen_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_screen_slot.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_screen_slot.add_theme_constant_override("separation", 8)
-	layout.add_child(_screen_slot)
+	_screen_slot.add_theme_constant_override("separation", 6)
+	body.add_child(_screen_slot)
 
 	_context_panel = _make_panel(Color("263a37"), Color("6a8068"), 12)
-	_context_panel.custom_minimum_size = Vector2(0, 112)
+	_context_panel.custom_minimum_size = Vector2(232, 0)
+	_context_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_context_panel.visible = false
-	layout.add_child(_context_panel)
+	body.add_child(_context_panel)
 	var context_box := VBoxContainer.new()
-	context_box.add_theme_constant_override("separation", 5)
+	context_box.add_theme_constant_override("separation", 8)
 	_context_panel.add_child(context_box)
 	_context_title = _make_label("", 17, TEXT_MAIN, true)
 	context_box.add_child(_context_title)
 	_context_description = _make_label("", 12, TEXT_MUTED, false)
 	_context_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	context_box.add_child(_context_description)
+	var context_spacer := Control.new()
+	context_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	context_box.add_child(context_spacer)
 	_context_action = _make_button("Interact", _perform_selected_action, true)
-	_context_action.custom_minimum_size = Vector2(0, 42)
+	_context_action.custom_minimum_size = Vector2(0, 48)
 	context_box.add_child(_context_action)
 
 	var navigation := HBoxContainer.new()
-	navigation.add_theme_constant_override("separation", 6)
+	navigation.add_theme_constant_override("separation", 8)
 	layout.add_child(navigation)
 	navigation.add_child(_make_button("WORLD", func() -> void: _show_view("sanctuary")))
 	navigation.add_child(_make_button("EXPLORE", func() -> void: _show_view("discovery")))

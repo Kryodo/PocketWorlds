@@ -1,4 +1,4 @@
-# Pocket Worlds — Playable Skeleton v0.1
+# Pocket Worlds — CP01 playable skeleton + CP02 world foundation
 
 A first Godot 4.7 mobile-first prototype for the Pocket Worlds concept.
 
@@ -17,9 +17,13 @@ The package does not contain `.git/` or `.godot/`.
 
 ## Included in this checkpoint
 
-- Portrait-first 2D project setup (preserves the starter project's Godot 4.7 Mobile renderer configuration).
-- Sanctuary and Whispering Woods top-down tile maps.
-- Mouse/touch map panning and pinch/wheel zoom.
+- Landscape-first 1280 × 720 logical reference viewport (Godot 4.7 Mobile renderer).
+- Sanctuary and Whispering Woods prototype worlds on a 32 × 32 projected grid.
+- Mouse/touch map panning and pinch/wheel zoom using an isolated world SubViewport and Camera2D.
+- Runtime projection comparison: three-quarter and isometric-style cell layouts.
+- Separate grid projection, occupancy, camera and asset-definition resources.
+- World object anchors and selection areas are independent of grid cell dimensions.
+- Pocket Worlds Art Studio editor plugin for pixel painting, layers, palettes, source saving and PNG/resource export.
 - Tap-to-inspect contextual object interactions.
 - Basic inventory, XP and Sanctuary levels.
 - Home interior with Field Guide, Alchemy Table, Workbench and Creature Nook hubs.
@@ -44,12 +48,23 @@ Progress is saved automatically in the user's Godot data directory.
 
 ## Important limitations
 
-- World artwork is temporary programmatic placeholder drawing. It is not representative of the final pixel-art style.
+- The world currently uses explicitly temporary debug silhouettes and debug ground polygons. These are for projection, scale and input testing only; they are not production artwork.
+- Art Studio is an initial MVP. It currently provides a 128 × 128 canvas, brush/eraser/eyedropper, layers, palette selection, source save/load, PNG export and asset metadata export. Advanced selection, fill, shape and animation editing are not implemented yet.
 - Object placement is restricted to predefined demonstration slots; a full drag-to-place editor is a later checkpoint.
 - Discovery interactions are authored examples, not a generalized quest or ecology simulation.
 - The Creature Nook is currently a placeholder hub.
 - The brewing activity proves the reusable hub interaction pattern; additional minigames are not included yet.
 - No mobile export presets, audio package, final typography, production assets or device-specific performance pass are included.
+
+## CP02 Art Studio
+
+1. Open **Project → Project Settings → Plugins**.
+2. Enable **Pocket Worlds Art Studio**.
+3. Open **Project → Tools → Pocket Worlds Art Studio**.
+4. Paint on the transparent canvas, add/select layers and choose palette colors.
+5. Use **Save Source** to retain editable layers, or **Export PNG** to create a runtime PNG and `.tres` asset definition under `assets/`.
+
+The plugin is not enabled automatically so a broken editor tool cannot prevent the game itself from opening.
 
 ## Verification
 

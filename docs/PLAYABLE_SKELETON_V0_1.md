@@ -14,11 +14,15 @@ Prove the mobile-first interaction model before investing in production pixel ar
 
 ## Architecture
 
-- `GameState` is the only autoload. It owns inventory, flags, experience, discoveries and JSON save/load.
-- `Main` owns high-level screen navigation and composes the UI.
-- `WorldBoard` owns outdoor world rendering, map navigation gestures and visual-object hit testing.
-- `HomeInteriorView` is a separate reusable scene that emits station-selection and return signals.
-- Hub interactions are separate methods in `Main`; they communicate through `GameState` rather than mutating world visuals directly.
+- `GameState` remains the only autoload and continues to own inventory, flags, experience, discoveries and JSON save/load.
+- `Main` owns high-level screen navigation and now uses a compact landscape layout with a contextual side panel.
+- `WorldBoard` hosts an isolated `SubViewport`, `Camera2D`, projection renderer and input overlay.
+- `GridProjection` converts between logical grid coordinates and projected world coordinates for three-quarter and isometric-style layouts.
+- `WorldGridData` provides footprint occupancy validation independently of sprite dimensions.
+- `PWAssetDefinition` stores reusable PNG paths, texture dimensions, ground anchors, footprints, selection and sorting metadata.
+- `WorldEntity` provides an asset-backed world-object root using ground-anchor positioning and optional `SpriteFrames`.
+- `HomeInteriorView` remains a separate reusable scene that emits station-selection and return signals.
+- Hub interactions continue to communicate through `GameState` rather than mutating world visuals directly.
 
 ## First-playable verification checklist
 
@@ -39,19 +43,31 @@ Prove the mobile-first interaction model before investing in production pixel ar
 - [ ] Journal reflects discoveries and inventory.
 - [ ] Closing and reopening the project preserves inventory, flags, XP and discoveries.
 
+## CP02 foundation added
+
+- The project reference viewport is now 1280 × 720 landscape.
+- The outdoor test world is 32 × 32 projected cells and can switch between three-quarter and isometric-style projections.
+- The world camera runs in its own `SubViewport`, so it does not transform the surrounding HUD.
+- World objects use separate debug selection bounds and ground-anchor positions.
+- `WorldGridData` supports rectangular or custom cell footprints and occupancy checks.
+- The initial Art Studio editor plugin supports a transparent 128 × 128 canvas, three starter layers, brush/eraser/eyedropper, a palette, source PNG layer saving/loading, composite PNG export and `.tres` asset-definition export.
+
 ## Known limitations
 
-- The world artwork is intentionally primitive placeholder drawing. It is not representative of the final pixel-art art direction.
+- Current visible world objects remain temporary debug silhouettes drawn by `WorldDebugObject`; the new asset-backed `WorldEntity` is ready for exported PNG definitions but the first production sprite set has not yet been authored.
+- Three-quarter and isometric projection values are comparison starting points, not a final art-direction lock.
+- The Art Studio is an intentionally small MVP. It does not yet include fill, geometric selection, line/shape tools, animation timeline editing or automatic sprite-sheet packing.
 - Object placement is restricted to predefined demonstration slots; a full drag-to-place editor is a later checkpoint.
 - Discovery interactions are authored examples, not a generalized quest or ecology simulation.
 - The Creature Nook is a placeholder hub.
 - The brewing activity proves the reusable hub interaction pattern; additional minigames are not included yet.
 - No mobile export presets, audio package, final typography, production assets or device-specific performance pass are included.
 
-## Next checkpoint candidates
+## Next implementation checkpoints
 
-1. Validate input, layout and save/load on an actual Android device or emulator.
-2. Add true grid-based drag-and-place with footprints and collision/occupancy validation.
-3. Replace placeholder world drawing with a small approved pixel-art tileset and object sprites.
-4. Add a reusable contextual hub scene/resource pattern.
-5. Add one short sprite animation and one reusable environmental effect.
+1. Run the project and compare the three-quarter and isometric buttons at landscape and PC aspect ratios.
+2. Test the grid conversion and occupancy helpers with regression fixtures, then add placement preview/validation.
+3. Enable the Art Studio plugin and create the first real transparent PNG sprite collection.
+4. Load those PNG definitions into `WorldEntity` and replace the temporary debug silhouettes.
+5. Add a few anchored sprite animations and lightweight ambient effects.
+6. Export an Android build and validate touch input, safe areas and performance on a physical device.
