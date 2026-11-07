@@ -278,7 +278,8 @@ static func _create_rock_layers() -> Array[Image]:
 	_draw_stepped_ellipse(highlights, 69, 37, 16, 5, 4, Color("638e4c"))
 	_draw_stepped_ellipse(highlights, 88, 35, 10, 5, 4, Color("79a653"))
 	_draw_stepped_ellipse(highlights, 53, 65, 8, 4, 4, Color("527c44"))
-	return [shadow, base, highlights]
+	var result: Array[Image] = [shadow, base, highlights]
+	return result
 
 static func _create_ground_patch_layers(map_size: Vector2i) -> Array[Image]:
 	var projection := GridProjection.new()
