@@ -1,0 +1,30 @@
+{
+	"asset_id": "forest_dirt_path_bare",
+	"footprint_size": [
+		1,
+		1
+	],
+	"ground_anchor_px": [
+		96,
+		48
+	],
+	"layers": [
+		{
+			"file": "layer_00.png",
+			"name": "Shadow Paintover"
+		},
+		{
+			"file": "layer_01.png",
+			"name": "Base Art"
+		},
+		{
+			"file": "layer_02.png",
+			"name": "Highlight Paintover"
+		}
+	],
+	"size": [
+		192,
+		96
+	],
+	"version": 1
+}

@@ -113,4 +113,3 @@ func _test_ground_renderer() -> void:
 			break
 	assert(path_tile_found, "Review terrain did not include a path tile")
 	ground.free()
-
