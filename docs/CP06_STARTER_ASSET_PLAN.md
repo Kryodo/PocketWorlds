@@ -60,7 +60,7 @@ Examples:
 
 ### Important: world units and source pixels are different
 
-The proposed (64, 32) is the logical cell-centre coordinate. It is not automatically the pixel anchor for every image.
+The proposed (64, 32) is the centre pixel of a 128 × 64 ground-tile PNG. In projected world coordinates, the cell centre is offset from the top grid vertex by (0, 32). These are different coordinate spaces, and the ground-tile anchor is not automatically the anchor for every object image.
 
 For a ground tile:
 
