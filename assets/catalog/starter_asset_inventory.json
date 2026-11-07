@@ -76,18 +76,6 @@
       "status": "scene_created_png_export_pending",
       "scene": "scenes/tests/grid_footprint_reference.tscn",
       "png_output": "assets/catalog/grid_footprint_reference.png"
-    },
-    {
-      "id": "grid_footprint_reference",
-      "type": "Godot_preview_scene_and_exportable_png",
-      "required_footprints": [
-        "1x1",
-        "1x2",
-        "2x2",
-        "2x3",
-        "3x3"
-      ],
-      "status": "scene_created_png_export_pending"
     }
   ],
   "batches": [
