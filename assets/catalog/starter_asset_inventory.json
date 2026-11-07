@@ -46,7 +46,7 @@
       ],
       "status": "preferred_candidate_not_implemented"
     },
-    "source_pixel_note": "World-unit cell centre (64,32) differs from a 2x source tile pixel centre (128,64).",
+    "source_pixel_note": "The 128x64 ground-tile PNG centre anchor is (64,32); the projected world cell-centre offset from the top grid vertex is (0,32); the 2x 256x128 source PNG centre anchor is (128,64).",
     "projected_footprint_bounds_world": "width=(columns+rows)*64; height=(columns+rows)*32"
   },
   "reference_deliverables": [
@@ -73,7 +73,21 @@
         "2x3",
         "3x3"
       ],
-      "status": "not_created"
+      "status": "scene_created_png_export_pending",
+      "scene": "scenes/tests/grid_footprint_reference.tscn",
+      "png_output": "assets/catalog/grid_footprint_reference.png"
+    },
+    {
+      "id": "grid_footprint_reference",
+      "type": "Godot_preview_scene_and_exportable_png",
+      "required_footprints": [
+        "1x1",
+        "1x2",
+        "2x2",
+        "2x3",
+        "3x3"
+      ],
+      "status": "scene_created_png_export_pending"
     }
   ],
   "batches": [
