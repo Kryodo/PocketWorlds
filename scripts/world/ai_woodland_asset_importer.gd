@@ -57,7 +57,7 @@ const ASSET_SPECS: Array[Dictionary] = [
 		"category": &"log",
 		"crop": Rect2i(850, 495, 370, 280),
 		"anchor": Vector2(190, 255),
-		"footprint": Vector2i(2, 1),
+		"footprint": Vector2i(1, 2),
 		"scale": Vector2(0.38, 0.38)
 	}
 ]
