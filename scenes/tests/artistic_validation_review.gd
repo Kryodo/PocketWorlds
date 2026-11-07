@@ -19,7 +19,7 @@ func _ready() -> void:
 	_build_current_panel(projection)
 	_build_validation_panel(projection, map_bounds, validation_offset)
 	_build_camera(map_bounds, validation_offset)
-	_build_overlay(validation_offset)
+	_build_overlay()
 	print("ARTISTIC VALIDATION ASSETS READY")
 
 func _build_current_panel(projection: GridProjection) -> void:
@@ -143,7 +143,7 @@ func _build_camera(map_bounds: Rect2, panel_offset: Vector2) -> void:
 	var combined_left := map_bounds.position.x
 	var combined_right := panel_offset.x + map_bounds.end.x
 	var center_x := (combined_left + combined_right) * 0.5
-	var center_y := -40.0
+	var center_y := 82.0
 
 	var camera := Camera2D.new()
 	camera.name = "ArtisticValidationCamera"
@@ -152,7 +152,7 @@ func _build_camera(map_bounds: Rect2, panel_offset: Vector2) -> void:
 	add_child(camera)
 	camera.make_current()
 
-func _build_overlay(panel_offset: Vector2) -> void:
+func _build_overlay() -> void:
 	var overlay := CanvasLayer.new()
 	overlay.name = "ReviewOverlay"
 	add_child(overlay)
