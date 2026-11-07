@@ -77,6 +77,12 @@ However, changing logical world units does not itself make the GPU faster or imp
 
 **Decision:** 128 × 64 is the preferred candidate for the next authoring standard, but do not change the main GridProjection yet. First prepare a visual scale-reference board and an isolated comparison. If adopted, migrate grid coordinates, camera framing, ground tile sizing, sprite scales, selection bounds and test fixtures together. Do not leave a mixed 96/128 world.
 
+### Technical references
+
+- [Godot 4.7 rendering limitations](https://docs.godotengine.org/en/4.7/tutorials/3d/3d_rendering_limitations.html) — mobile GPU notes for repeating non-power-of-two textures.
+- [Godot image importing and mipmaps](https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_images.html) — 2D mipmap trade-offs and additional memory use.
+- [Godot CanvasItem texture filters](https://docs.godotengine.org/en/stable/classes/class_canvasitem.html) — LINEAR and LINEAR_WITH_MIPMAPS behaviour for 2D sprites.
+
 ## 2. Starter asset inventory
 
 This inventory is intentionally small. Each batch exists to test a different production problem.
