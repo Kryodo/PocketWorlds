@@ -134,7 +134,7 @@ func _draw_visual_scale_examples() -> void:
 	_draw_ellipse(Vector2(1058.0, 375.0), Vector2(27.0, 7.0), Color(0.05, 0.09, 0.06, 0.45))
 
 	# 3×3 cottage: an architectural landmark, clearly larger than a compact prop.
-	_draw_footprint(Vector2(1092.0, 500.0), Vector2i(3, 3), 0.27)
+	_draw_footprint(Vector2(1092.0, 548.0), Vector2i(3, 3), 0.27)
 	draw_colored_polygon(PackedVector2Array([
 		Vector2(1023.0, 526.0), Vector2(1092.0, 476.0),
 		Vector2(1162.0, 526.0), Vector2(1154.0, 540.0),
@@ -176,7 +176,7 @@ func _build_labels() -> void:
 	_add_label("PNG centre: (48, 24)", Vector2(73.0, 508.0), Vector2(195.0, 20.0), 12, TEXT_MUTED)
 	_add_label("2× source: 256 × 128", Vector2(63.0, 552.0), Vector2(220.0, 20.0), 12, TEXT_MAIN)
 	_add_label("2× pixel anchor: (128, 64)", Vector2(48.0, 575.0), Vector2(245.0, 20.0), 12, TEXT_MAIN)
-	_add_label("Grid cell centre (tile image) ≠ grid origin.", Vector2(39.0, 615.0), Vector2(265.0, 28.0), 10, TEXT_MUTED)
+	_add_label("World cell-centre offset from top vertex: (0, 32)", Vector2(39.0, 615.0), Vector2(265.0, 28.0), 10, TEXT_MUTED)
 
 	_add_label("LOGICAL FOOTPRINTS", Vector2(354.0, 112.0), Vector2(520.0, 26.0), 17, TEXT_MAIN, true)
 	_add_label("Each outline is made from occupied 128 × 64 cells.", Vector2(356.0, 145.0), Vector2(540.0, 20.0), 12, TEXT_MUTED)
@@ -193,11 +193,11 @@ func _build_labels() -> void:
 	_add_label("Width = 64 × (columns + rows)   ·   Height = 32 × (columns + rows)", Vector2(354.0, 620.0), Vector2(565.0, 20.0), 10, ACCENT)
 
 	_add_label("VISUAL SIZE ≠ FOOTPRINT", Vector2(970.0, 112.0), Vector2(270.0, 26.0), 16, TEXT_MAIN, true)
-	_add_label("1 × 1 plant", Vector2(1044.0, 228.0), Vector2(140.0, 20.0), 12, TEXT_MAIN, true)
+	_add_label("1 × 1 plant", Vector2(1044.0, 235.0), Vector2(140.0, 20.0), 12, TEXT_MAIN, true)
 	_add_label("2 × 2 tree · canopy may overhang", Vector2(974.0, 400.0), Vector2(270.0, 20.0), 11, TEXT_MAIN, true)
-	_add_label("3 × 3 cottage · architectural scale", Vector2(974.0, 600.0), Vector2(270.0, 20.0), 11, TEXT_MAIN, true)
+	_add_label("3 × 3 cottage · architectural scale", Vector2(974.0, 606.0), Vector2(270.0, 20.0), 11, TEXT_MAIN, true)
 	_add_label("Base / contact point stays on ground.", Vector2(974.0, 427.0), Vector2(270.0, 20.0), 10, TEXT_MUTED)
-	_add_label("Do not resize all objects to one canvas.", Vector2(974.0, 630.0), Vector2(270.0, 18.0), 10, TEXT_MUTED)
+	_add_label("Do not resize all objects to one canvas.", Vector2(974.0, 629.0), Vector2(270.0, 18.0), 10, TEXT_MUTED)
 
 	_add_label("Footprint = occupied ground cells. Visible artwork can extend above or beyond it.", Vector2(25.0, 675.0), Vector2(870.0, 20.0), 12, TEXT_MAIN)
 	_add_label("Press P to export PNG", Vector2(1030.0, 675.0), Vector2(220.0, 20.0), 12, ACCENT, true)
