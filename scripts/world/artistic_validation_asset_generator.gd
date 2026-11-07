@@ -106,7 +106,8 @@ static func _create_asset_layers(asset_id: String) -> Array[Image]:
 			return _create_plant_layers()
 		"validation_rock":
 			return _create_rock_layers()
-	return []
+	var empty_layers: Array[Image] = []
+	return empty_layers
 
 static func _create_oak_layers() -> Array[Image]:
 	var size := Vector2i(256, 256)
@@ -178,7 +179,8 @@ static func _create_oak_layers() -> Array[Image]:
 	_draw_stepped_ellipse(highlights, 152, 112, 12, 8, 4, Color("4f8c3e"))
 	_draw_stepped_ellipse(highlights, 102, 132, 13, 7, 4, Color("477f3d"))
 	_draw_stepped_ellipse(highlights, 190, 120, 10, 7, 4, Color("447d3b"))
-	return [shadow, merged_base, highlights]
+	var result: Array[Image] = [shadow, merged_base, highlights]
+	return result
 
 static func _draw_trunk(image: Image) -> void:
 	for y in range(144, 240, 4):
@@ -222,7 +224,8 @@ static func _create_plant_layers() -> Array[Image]:
 	_draw_flower_head(highlights, Vector2(62, 32), Color("b995ee"), Color("ffe3a0"))
 	_draw_stepped_ellipse(highlights, 46, 84, 7, 4, 4, Color("83c55b"))
 	_draw_stepped_ellipse(highlights, 80, 83, 7, 4, 4, Color("86c45a"))
-	return [shadow, base, highlights]
+	var result: Array[Image] = [shadow, base, highlights]
+	return result
 
 static func _draw_flower_head(image: Image, center: Vector2, petal_color: Color, center_color: Color) -> void:
 	var cx := roundi(center.x)
@@ -343,7 +346,8 @@ static func _create_ground_patch_layers(map_size: Vector2i) -> Array[Image]:
 		_draw_clipped_stepped_ellipse(details, px, py, 7, 4, TILE_STEP, Color("879184"), map_size, bounds)
 		_draw_clipped_stepped_ellipse(details, px - 3, py - 2, 3, 2, TILE_STEP, Color("b1b49c"), map_size, bounds)
 
-	return [base, path, details]
+	var result: Array[Image] = [base, path, details]
+	return result
 
 static func _draw_ground_stroke(
 	image: Image,
