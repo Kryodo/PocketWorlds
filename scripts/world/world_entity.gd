@@ -61,6 +61,7 @@ func _rebuild_visual() -> void:
 		_animated_sprite = AnimatedSprite2D.new()
 		_animated_sprite.sprite_frames = definition.sprite_frames
 		_animated_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		_animated_sprite.scale = definition.sprite_scale
 		_animated_sprite.position = _get_sprite_offset()
 		add_child(_animated_sprite)
 		var animation_name := String(definition.default_animation)
@@ -74,6 +75,7 @@ func _rebuild_visual() -> void:
 		_sprite = Sprite2D.new()
 		_sprite.texture = texture
 		_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		_sprite.scale = definition.sprite_scale
 		_sprite.position = _get_sprite_offset()
 		add_child(_sprite)
 
@@ -83,4 +85,4 @@ func _get_sprite_offset() -> Vector2:
 		var texture := definition.load_texture()
 		if texture != null:
 			texture_size = texture.get_size()
-	return texture_size * 0.5 - definition.ground_anchor_px + definition.visual_offset
+	return (texture_size * 0.5 - definition.ground_anchor_px) * definition.sprite_scale + definition.visual_offset

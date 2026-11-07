@@ -11,4 +11,6 @@ tags = Array[StringName]([&"tree", &"deciduous", &"sanctuary"])
 texture_path = "res://assets/sprites/old_oak.png"
 texture_size_px = Vector2i(128, 128)
 ground_anchor_px = Vector2(64, 122)
+asset_role = 0
+sprite_scale = Vector2(1.55, 1.55)
 footprint_size = Vector2i(2, 2)

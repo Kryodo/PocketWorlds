@@ -3,7 +3,7 @@ extends Window
 
 const CANVAS_SCRIPT := preload("res://addons/pocket_worlds_art_studio/art_canvas.gd")
 const ASSET_DEFINITION_SCRIPT := preload("res://scripts/world/pw_asset_definition.gd")
-const DOCUMENT_SIZE := Vector2i(128, 128)
+var _document_size: Vector2i = Vector2i(128, 128)
 
 signal filesystem_changed
 
@@ -36,6 +36,8 @@ var _anchor_x: SpinBox
 var _anchor_y: SpinBox
 var _footprint_x: SpinBox
 var _footprint_y: SpinBox
+var _size_x: SpinBox
+var _size_y: SpinBox
 var _status_label: Label
 var _color_preview: ColorRect
 
@@ -57,7 +59,7 @@ func _create_default_layers() -> void:
 	_active_layer_index = 1
 
 func _add_layer_data(layer_name: String) -> void:
-	var image := Image.create(DOCUMENT_SIZE.x, DOCUMENT_SIZE.y, false, Image.FORMAT_RGBA8)
+	var image := Image.create(_document_size.x, _document_size.y, false, Image.FORMAT_RGBA8)
 	image.fill(Color(0, 0, 0, 0))
 	_layers.append({"name": layer_name, "image": image})
 
@@ -115,9 +117,17 @@ func _build_interface() -> void:
 	_asset_id_input.text = "first_sprite"
 	settings.add_child(_asset_id_input)
 
+	settings.add_child(_make_label("Canvas size (px)", 12))
+	_size_x = _make_spinbox(16, 2048, 128)
+	_size_y = _make_spinbox(16, 2048, 128)
+	_size_x.value_changed.connect(_on_document_size_changed)
+	_size_y.value_changed.connect(_on_document_size_changed)
+	settings.add_child(_size_x)
+	settings.add_child(_size_y)
+
 	settings.add_child(_make_label("Ground anchor (px)", 12))
-	_anchor_x = _make_spinbox(0, 2048, 64)
-	_anchor_y = _make_spinbox(0, 2048, 120)
+	_anchor_x = _make_spinbox(0, 127, 64)
+	_anchor_y = _make_spinbox(0, 127, 120)
 	settings.add_child(_anchor_x)
 	settings.add_child(_anchor_y)
 
@@ -195,6 +205,27 @@ func _make_spinbox(minimum: float, maximum: float, initial: float) -> SpinBox:
 	spin.rounded = true
 	return spin
 
+func _on_document_size_changed(_value: float = 0.0) -> void:
+	if _size_x == null or _size_y == null:
+		return
+	var next_size := Vector2i(int(_size_x.value), int(_size_y.value))
+	if next_size == _document_size:
+		return
+	for index in range(_layers.size()):
+		var old_image: Image = _layers[index]["image"]
+		var resized := Image.create(next_size.x, next_size.y, false, Image.FORMAT_RGBA8)
+		resized.fill(Color(0, 0, 0, 0))
+		var copy_size := Vector2i(mini(old_image.get_width(), next_size.x), mini(old_image.get_height(), next_size.y))
+		resized.blit_rect(old_image, Rect2i(Vector2i.ZERO, copy_size), Vector2i.ZERO)
+		_layers[index]["image"] = resized
+	_document_size = next_size
+	_anchor_x.max_value = float(next_size.x - 1)
+	_anchor_y.max_value = float(next_size.y - 1)
+	_anchor_x.value = clampf(_anchor_x.value, 0.0, _anchor_x.max_value)
+	_anchor_y.value = clampf(_anchor_y.value, 0.0, _anchor_y.max_value)
+	_refresh_preview()
+	_status_label.text = "Canvas resized to %d × %d px." % [next_size.x, next_size.y]
+
 func _set_tool(tool_name: String) -> void:
 	_active_tool = tool_name
 	_status_label.text = "Tool: %s" % tool_name.capitalize()
@@ -235,10 +266,13 @@ func _remove_layer() -> void:
 	_refresh_preview()
 
 func _new_document() -> void:
+	_document_size = Vector2i(int(_size_x.value), int(_size_y.value))
+	_anchor_x.max_value = float(_document_size.x - 1)
+	_anchor_y.max_value = float(_document_size.y - 1)
 	_create_default_layers()
 	_refresh_layer_list()
 	_refresh_preview()
-	_status_label.text = "New transparent 128 × 128 document."
+	_status_label.text = "New transparent %d × %d document." % [_document_size.x, _document_size.y]
 
 func _on_layer_selected(index: int) -> void:
 	_active_layer_index = index
@@ -253,11 +287,11 @@ func _refresh_layer_list() -> void:
 		_layer_list.select(_active_layer_index)
 
 func _build_composite() -> Image:
-	var composite := Image.create(DOCUMENT_SIZE.x, DOCUMENT_SIZE.y, false, Image.FORMAT_RGBA8)
+	var composite := Image.create(_document_size.x, _document_size.y, false, Image.FORMAT_RGBA8)
 	composite.fill(Color(0, 0, 0, 0))
 	for layer in _layers:
 		var image: Image = layer["image"]
-		composite.blend_rect(image, Rect2i(Vector2i.ZERO, DOCUMENT_SIZE), Vector2i.ZERO)
+		composite.blend_rect(image, Rect2i(Vector2i.ZERO, _document_size), Vector2i.ZERO)
 	return composite
 
 func _refresh_preview() -> void:
@@ -296,7 +330,7 @@ func _save_source() -> bool:
 	var document := {
 		"version": 1,
 		"asset_id": asset_id,
-		"size": [DOCUMENT_SIZE.x, DOCUMENT_SIZE.y],
+		"size": [_document_size.x, _document_size.y],
 		"ground_anchor_px": [int(_anchor_x.value), int(_anchor_y.value)],
 		"footprint_size": [int(_footprint_x.value), int(_footprint_y.value)],
 		"layers": layer_entries
@@ -330,6 +364,12 @@ func _load_source() -> void:
 		return
 
 	var document: Dictionary = parsed
+	var saved_size: Array = document.get("size", [128, 128])
+	_document_size = Vector2i(maxi(16, int(saved_size[0])), maxi(16, int(saved_size[1])))
+	_size_x.set_value_no_signal(_document_size.x)
+	_size_y.set_value_no_signal(_document_size.y)
+	_anchor_x.max_value = float(_document_size.x - 1)
+	_anchor_y.max_value = float(_document_size.y - 1)
 	var next_layers: Array[Dictionary] = []
 	for entry_value in document.get("layers", []):
 		if not entry_value is Dictionary:
@@ -349,10 +389,10 @@ func _load_source() -> void:
 		return
 
 	_layers = next_layers
-	var anchor: Array = document.get("ground_anchor_px", [64, 120])
+	var anchor: Array = document.get("ground_anchor_px", [_document_size.x / 2, _document_size.y - 8])
 	var footprint: Array = document.get("footprint_size", [1, 1])
-	_anchor_x.value = int(anchor[0])
-	_anchor_y.value = int(anchor[1])
+	_anchor_x.value = clampf(float(anchor[0]), 0.0, _anchor_x.max_value)
+	_anchor_y.value = clampf(float(anchor[1]), 0.0, _anchor_y.max_value)
 	_footprint_x.value = int(footprint[0])
 	_footprint_y.value = int(footprint[1])
 	_active_layer_index = mini(1, _layers.size() - 1)
@@ -380,7 +420,7 @@ func _export_asset() -> void:
 	definition.display_name = asset_id.replace("_", " ").capitalize()
 	definition.category = &"custom"
 	definition.texture_path = texture_path
-	definition.texture_size_px = DOCUMENT_SIZE
+	definition.texture_size_px = _document_size
 	definition.ground_anchor_px = Vector2(_anchor_x.value, _anchor_y.value)
 	definition.footprint_size = Vector2i(int(_footprint_x.value), int(_footprint_y.value))
 	var definition_path := "%s/%s.tres" % [definition_directory, asset_id]

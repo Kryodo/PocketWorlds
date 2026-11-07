@@ -1,3 +1,4 @@
+@tool
 class_name PWAssetDefinition
 extends Resource
 
@@ -5,6 +6,11 @@ enum PlacementMode {
 	PLACEABLE,
 	DECORATIVE,
 	FIXED
+}
+
+enum AssetRole {
+	WORLD_OBJECT,
+	GROUND_TILE
 }
 
 @export var schema_version: int = 1
@@ -28,6 +34,8 @@ enum PlacementMode {
 @export var sort_z_index: int = 0
 @export var sprite_frames: SpriteFrames
 @export var default_animation: StringName = &"idle"
+@export var asset_role: AssetRole = AssetRole.WORLD_OBJECT
+@export var sprite_scale: Vector2 = Vector2.ONE
 
 func get_footprint_cells(anchor: Vector2i) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []

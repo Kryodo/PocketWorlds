@@ -21,19 +21,33 @@ func set_preview_image(image: Image) -> void:
 	queue_redraw()
 
 func _get_canvas_rect() -> Rect2:
-	var side := maxf(64.0, minf(size.x, size.y) - 32.0)
-	return Rect2((size - Vector2.ONE * side) * 0.5, Vector2.ONE * side)
+	var available := Vector2(maxf(64.0, size.x - 32.0), maxf(64.0, size.y - 32.0))
+	var image_aspect := float(image_size.x) / float(maxi(1, image_size.y))
+	var available_aspect := available.x / available.y
+	var canvas_size := available
+	if available_aspect > image_aspect:
+		canvas_size.x = available.y * image_aspect
+	else:
+		canvas_size.y = available.x / image_aspect
+	return Rect2((size - canvas_size) * 0.5, canvas_size)
 
 func _draw() -> void:
 	var canvas_rect := _get_canvas_rect()
 	draw_rect(Rect2(Vector2.ZERO, size), Color("202b29"))
 	draw_rect(canvas_rect.grow(3.0), Color("111918"))
-	var checker_count := 16
-	var checker_size := canvas_rect.size / float(checker_count)
-	for y in range(checker_count):
-		for x in range(checker_count):
+	var pixel_scale := canvas_rect.size / Vector2(image_size)
+	var checker_pixels := 8
+	var checker_columns := ceili(float(image_size.x) / float(checker_pixels))
+	var checker_rows := ceili(float(image_size.y) / float(checker_pixels))
+	for y in range(checker_rows):
+		for x in range(checker_columns):
 			var shade := Color("46514c") if (x + y) % 2 == 0 else Color("39443f")
-			draw_rect(Rect2(canvas_rect.position + Vector2(x, y) * checker_size, checker_size), shade)
+			var origin := canvas_rect.position + Vector2(x, y) * float(checker_pixels) * pixel_scale
+			var extent := Vector2(
+				minf(float(checker_pixels), float(image_size.x - x * checker_pixels)),
+				minf(float(checker_pixels), float(image_size.y - y * checker_pixels))
+			) * pixel_scale
+			draw_rect(Rect2(origin, extent), shade)
 
 	if _preview_texture != null:
 		draw_texture_rect(_preview_texture, canvas_rect, false)
