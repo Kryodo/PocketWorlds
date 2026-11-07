@@ -155,6 +155,10 @@ static func _sample_background_color(source: Image) -> Color:
 
 static func _extract_crop(source: Image, crop_rect: Rect2i, key_color: Color) -> Image:
 	var extracted := source.get_region(crop_rect)
+	# JPEG images normally load without an alpha channel. Convert before keying,
+	# otherwise set_pixel() cannot store transparent pixels in an RGB image.
+	if extracted.get_format() != Image.FORMAT_RGBA8:
+		extracted.convert(Image.FORMAT_RGBA8)
 	for y in range(extracted.get_height()):
 		for x in range(extracted.get_width()):
 			var pixel := extracted.get_pixel(x, y)
