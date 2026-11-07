@@ -167,5 +167,3 @@ static func _ensure_directory(res_path: String) -> void:
 static func _display_name(asset_id: String) -> String:
 	var readable := asset_id.trim_prefix("forest_").replace("_", " ")
 	return readable.capitalize()
-
-

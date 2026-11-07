@@ -13,4 +13,3 @@ func _ready() -> void:
 	var skipped: Array = result.get("skipped", [])
 	print("FOREST GROUND TILE PNG GENERATION PASS · generated %d · existing preserved %d" % [generated.size(), skipped.size()])
 	get_tree().quit()
-
