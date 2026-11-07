@@ -127,7 +127,7 @@ static func generate_all_assets(overwrite_existing: bool = false) -> Dictionary:
 	return result
 
 static func get_asset_specs() -> Array[Dictionary]:
-	return ASSET_SPECS.duplicate(true)
+	return ASSET_SPECS
 
 static func load_generated_image(asset_id: String) -> Image:
 	var path := "res://assets/sprites/%s.png" % asset_id
@@ -144,12 +144,14 @@ static func _sample_background_color(source: Image) -> Color:
 		source.get_pixel(2, source.get_height() - 3),
 		source.get_pixel(source.get_width() - 3, source.get_height() - 3)
 	]
-	var total := Color(0.0, 0.0, 0.0, 1.0)
+	var red_total := 0.0
+	var green_total := 0.0
+	var blue_total := 0.0
 	for sample in samples:
-		total.r += sample.r
-		total.g += sample.g
-		total.b += sample.b
-	return Color(total.r / 4.0, total.g / 4.0, total.b / 4.0, 1.0)
+		red_total += sample.r
+		green_total += sample.g
+		blue_total += sample.b
+	return Color(red_total / 4.0, green_total / 4.0, blue_total / 4.0, 1.0)
 
 static func _extract_crop(source: Image, crop_rect: Rect2i, key_color: Color) -> Image:
 	var extracted := source.get_region(crop_rect)
