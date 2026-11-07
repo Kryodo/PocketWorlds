@@ -1,0 +1,43 @@
+{
+	"asset_id": "ai_woodland_leafy_plant",
+	"background_key_rgb": [
+		13,
+		199,
+		249
+	],
+	"footprint_size": [
+		1,
+		1
+	],
+	"ground_anchor_px": [
+		115.0,
+		210.0
+	],
+	"layers": [
+		{
+			"file": "layer_00.png",
+			"name": "Original Extracted Artwork"
+		},
+		{
+			"file": "layer_01.png",
+			"name": "Manual Cleanup"
+		}
+	],
+	"notes": "The original sheet is flattened. The extracted artwork layer includes the original contact shadow; Manual Cleanup is an empty transparent layer for corrections.",
+	"size": [
+		230,
+		220
+	],
+	"source_crop_rect": [
+		205,
+		560,
+		230,
+		220
+	],
+	"source_sheet": "res://art_inbox/woodland_asset_set_01.jpg",
+	"source_sheet_dimensions": [
+		1264,
+		848
+	],
+	"version": 1
+}

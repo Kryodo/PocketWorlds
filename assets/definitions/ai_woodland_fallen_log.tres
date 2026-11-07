@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="PWAssetDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/pw_asset_definition.gd" id="1_xb3rh"]
+
+[resource]
+script = ExtResource("1_xb3rh")
+asset_id = &"ai_woodland_fallen_log"
+display_name = "Fallen Log"
+category = &"log"
+tags = Array[StringName]([&"ai_imported", &"woodland", &"log", &"casual_toon"])
+texture_path = "res://assets/sprites/ai_woodland_fallen_log.png"
+texture_size_px = Vector2i(370, 280)
+ground_anchor_px = Vector2(190, 255)
+footprint_size = Vector2i(1, 2)
+selection_polygon = PackedVector2Array()
+sprite_scale = Vector2(0.38, 0.38)
+texture_filter_mode = 1

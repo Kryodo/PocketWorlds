@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="PWAssetDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/pw_asset_definition.gd" id="1_1fab3"]
+
+[resource]
+script = ExtResource("1_1fab3")
+asset_id = &"ai_woodland_bush"
+display_name = "Leafy Bush"
+category = &"bush"
+tags = Array[StringName]([&"ai_imported", &"woodland", &"bush", &"casual_toon"])
+texture_path = "res://assets/sprites/ai_woodland_bush.png"
+texture_size_px = Vector2i(300, 280)
+ground_anchor_px = Vector2(150, 245)
+selection_polygon = PackedVector2Array()
+sprite_scale = Vector2(0.36, 0.36)
+texture_filter_mode = 1

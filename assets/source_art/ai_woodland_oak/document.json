@@ -1,0 +1,43 @@
+{
+	"asset_id": "ai_woodland_oak",
+	"background_key_rgb": [
+		13,
+		199,
+		249
+	],
+	"footprint_size": [
+		2,
+		2
+	],
+	"ground_anchor_px": [
+		300.0,
+		475.0
+	],
+	"layers": [
+		{
+			"file": "layer_00.png",
+			"name": "Original Extracted Artwork"
+		},
+		{
+			"file": "layer_01.png",
+			"name": "Manual Cleanup"
+		}
+	],
+	"notes": "The original sheet is flattened. The extracted artwork layer includes the original contact shadow; Manual Cleanup is an empty transparent layer for corrections.",
+	"size": [
+		510,
+		510
+	],
+	"source_crop_rect": [
+		40,
+		40,
+		510,
+		510
+	],
+	"source_sheet": "res://art_inbox/woodland_asset_set_01.jpg",
+	"source_sheet_dimensions": [
+		1264,
+		848
+	],
+	"version": 1
+}

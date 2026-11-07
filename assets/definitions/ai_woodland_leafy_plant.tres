@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="PWAssetDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/pw_asset_definition.gd" id="1_egc02"]
+
+[resource]
+script = ExtResource("1_egc02")
+asset_id = &"ai_woodland_leafy_plant"
+display_name = "Leafy Plant"
+category = &"plant"
+tags = Array[StringName]([&"ai_imported", &"woodland", &"plant", &"casual_toon"])
+texture_path = "res://assets/sprites/ai_woodland_leafy_plant.png"
+texture_size_px = Vector2i(230, 220)
+ground_anchor_px = Vector2(115, 210)
+selection_polygon = PackedVector2Array()
+sprite_scale = Vector2(0.38, 0.38)
+texture_filter_mode = 1

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="PWAssetDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/pw_asset_definition.gd" id="1_6aeuh"]
+
+[resource]
+script = ExtResource("1_6aeuh")
+asset_id = &"ai_woodland_oak"
+display_name = "Woodland Oak"
+category = &"tree"
+tags = Array[StringName]([&"ai_imported", &"woodland", &"tree", &"casual_toon"])
+texture_path = "res://assets/sprites/ai_woodland_oak.png"
+texture_size_px = Vector2i(510, 510)
+ground_anchor_px = Vector2(300, 475)
+footprint_size = Vector2i(2, 2)
+selection_polygon = PackedVector2Array()
+sprite_scale = Vector2(0.42, 0.42)
+texture_filter_mode = 1

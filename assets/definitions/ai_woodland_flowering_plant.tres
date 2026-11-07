@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="PWAssetDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/pw_asset_definition.gd" id="1_0ptc4"]
+
+[resource]
+script = ExtResource("1_0ptc4")
+asset_id = &"ai_woodland_flowering_plant"
+display_name = "Flowering Plant"
+category = &"plant"
+tags = Array[StringName]([&"ai_imported", &"woodland", &"plant", &"casual_toon"])
+texture_path = "res://assets/sprites/ai_woodland_flowering_plant.png"
+texture_size_px = Vector2i(190, 210)
+ground_anchor_px = Vector2(90, 185)
+selection_polygon = PackedVector2Array()
+sprite_scale = Vector2(0.4, 0.4)
+texture_filter_mode = 1
