@@ -51,10 +51,7 @@ func _build_validation_panel(
 	panel.position = panel_offset
 	add_child(panel)
 
-	var ground_image := _load_or_create_image(
-		"res://assets/sprites/validation_ground_patch.png",
-		GENERATOR.create_ground_patch_image(MAP_SIZE)
-	)
+	var ground_image := _load_ground_image("res://assets/sprites/validation_ground_patch.png")
 	var ground_texture := ImageTexture.create_from_image(ground_image)
 	var ground_sprite := Sprite2D.new()
 	ground_sprite.name = "ContinuousGroundPatch"
@@ -102,7 +99,7 @@ func _add_validation_asset(
 	assert(definition != null, "Validation definition was not generated: %s" % asset_id)
 
 	var image_path := "res://assets/sprites/%s.png" % asset_id
-	var image := _load_or_create_image(image_path, GENERATOR.create_asset_image(asset_id))
+	var image := _load_asset_image(image_path, asset_id)
 	var texture := ImageTexture.create_from_image(image)
 
 	var object_root := Node2D.new()
@@ -132,12 +129,19 @@ func _get_ground_position(
 		+ projection.get_axis_b() * float(footprint.y) * 0.5
 	)
 
-func _load_or_create_image(path: String, fallback: Image) -> Image:
+func _load_ground_image(path: String) -> Image:
 	var image := Image.new()
 	var error := image.load(ProjectSettings.globalize_path(path))
 	if error == OK and not image.is_empty():
 		return image
-	return fallback
+	return GENERATOR.create_ground_patch_image(MAP_SIZE)
+
+func _load_asset_image(path: String, asset_id: String) -> Image:
+	var image := Image.new()
+	var error := image.load(ProjectSettings.globalize_path(path))
+	if error == OK and not image.is_empty():
+		return image
+	return GENERATOR.create_asset_image(asset_id)
 
 func _build_camera(map_bounds: Rect2, panel_offset: Vector2) -> void:
 	var combined_left := map_bounds.position.x
