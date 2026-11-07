@@ -56,3 +56,7 @@ See `docs/CP04_ARTISTIC_VALIDATION.md` for evaluation criteria and the test setu
 ## CP05 — External Gemini asset import
 
 The original JPG sheet is preserved at `art_inbox/woodland_asset_set_01.jpg`. Run `scenes/tests/ai_woodland_asset_review.tscn` with F6 to crop six objects, key out the cyan background, save transparent PNGs, create `PWAssetDefinition` resources and source documents, then compare them against the existing sprites. Imported definitions use per-asset LINEAR filtering; existing assets remain NEAREST. The extracted source layer is flattened because the original JPG has no independent object/shadow layers. See `docs/CP05_GEMINI_ASSET_IMPORT.md`.
+
+## CP06 starter inventory
+
+The scoped starter-asset inventory is maintained in `assets/catalog/starter_asset_inventory.json`. It covers only the current Sanctuary and Whispering Woods test content: ground, a small natural-object set, three starter buildings, one creature with three animation loops and seven core item icons. It is not a full-library commitment. See `docs/CP06_STARTER_ASSET_PLAN.md` for the scale, grid and production-batch plan.
