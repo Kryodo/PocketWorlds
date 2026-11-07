@@ -41,7 +41,7 @@ The proposed 128 × 64 system would use:
 - Axis A: (64, 32)
 - Axis B: (-64, 32)
 - Cell dimensions: 128 × 64 world units
-- Cell centre relative to the cell's top-left grid corner: (64, 32) world units
+- Ground-tile PNG centre anchor: (64, 32) at 1×. The projected world cell-centre offset from the top grid vertex is (0, 32) world units.
 
 For a rectangular logical footprint of columns × rows, the projected bounding dimensions are:
 
