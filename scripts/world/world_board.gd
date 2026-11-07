@@ -102,7 +102,7 @@ func _build_input_overlay() -> void:
 	_input_overlay.gui_input.connect(_on_gui_input)
 	add_child(_input_overlay)
 
-		_projection_label = Label.new()
+	_projection_label = Label.new()
 	_projection_label.text = "3/4 TOP-DOWN · ISOMETRIC GRID  ·  32 × 32 DEBUG WORLD"
 	_projection_label.position = Vector2(14, 66)
 	_projection_label.add_theme_color_override("font_color", Color("f2ead4"))
