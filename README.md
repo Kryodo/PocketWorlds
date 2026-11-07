@@ -99,3 +99,7 @@ The original Gemini woodland sheet is preserved at `art_inbox/woodland_asset_set
 ## CP06 — Starter asset planning
 
 CP06 defines only the minimum starter content required to validate Pocket Worlds artwork and the production pipeline: ground and terrain, environmental objects, three starter buildings, one creature with idle/walk/signature animation rows, and a small core item-icon sheet. It also evaluates the candidate 128 × 64 world grid without changing the main projection yet. See `docs/CP06_STARTER_ASSET_PLAN.md` and the machine-readable `assets/catalog/starter_asset_inventory.json`. No full asset library is in scope.
+
+### CP06 grid and footprint reference
+
+Run `scenes/tests/grid_footprint_reference.tscn` with F6 to preview the proposed 128 × 64 cell standard beside the current 96 × 48 size and see the 1 × 1 through 3 × 3 logical footprints. The scene runs isolated projection and footprint assertions without changing the main world. Press **P** to export a PNG reference to `assets/catalog/grid_footprint_reference.png`. See `docs/CP06_GRID_FOOTPRINT_REFERENCE.md`.
