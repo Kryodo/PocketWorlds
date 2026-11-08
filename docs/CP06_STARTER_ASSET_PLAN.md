@@ -19,12 +19,12 @@ The current project already has the interaction loop and resource IDs for wood, 
 
 | Topic | CP06 position | Status |
 |---|---|---|
-| Production art direction | Casual Toon 2.5D is the leading candidate | Not locked |
+| Production art direction | Enchanted Hand-Painted 2.5D | Working direction; CP07 calibration pending |
 | World projection | 3/4 top-down dimetric, 2:1 diamond | Keep |
 | Logical cell size | Evaluate 128 × 64 instead of current 96 × 48 | Candidate; not implemented |
 | Source art density | Test 2× source resolution for ground tiles and suitable object classes | Provisional |
 | Grounding | Object shadows must visibly connect to the ground | Required |
-| Asset generation | Cohesive category sheets, with a master style/scale reference | Proposed workflow |
+| Asset generation | 2D image generation with shared style and scale references | Proposed local workflow; model/tool compatibility pending |
 | Animation | One creature, three short animation loops | Required validation |
 | Library size | Starter assets only | Locked scope limit |
 
@@ -183,20 +183,22 @@ The first complete art review scene should show:
 
 This one scene is the minimum useful cross-category test for scale, ground contact, visual consistency, animation and composition. It is not a finished level or a full biome.
 
-## 4. Gemini generation batches
+## 4. 2D AI image-generation batches
 
-Keep generation prompts short. Attach visual references rather than repeatedly adding long written descriptions.
+Keep prompts concise and reference-led. Use the approved visual identity reference and the separate grid/footprint guide rather than repeatedly putting every rule into long text prompts.
 
 Recommended order:
 
-1. **Style and scale reference board:** one representative tree, plant, rock, building, creature and ground sample. This is a calibration sheet, not production content. It must visually demonstrate the relative size hierarchy against a separate 2:1 ground-footprint guide.
-2. **Ground sheet:** all starter ground materials and the small connection set, generated separately from objects.
-3. **Environmental object sheet:** the starter natural objects, with visible size differences matching the scale reference.
-4. **Building sheet:** cottage, workshop and habitat, all shown with the same camera and with unmistakably different architectural scales.
-5. **Creature animation sheet:** one creature, with three four-frame animation rows.
+1. **Style and scale calibration set:** one representative tree, plant, rock, building, creature and ground sample. This is a calibration set, not production content. Review the relative size hierarchy against the separate 2:1 ground-footprint guide.
+2. **Ground sheet:** starter ground materials and the small connection set, generated separately from objects.
+3. **Environmental object sheet:** the starter natural objects, with visible size differences matching the approved calibration reference.
+4. **Building sheet:** cottage, workshop and habitat, all shown with the same view and clearly different architectural scales.
+5. **Creature animation sheet:** one approved static creature, with three four-frame animation rows.
 6. **Item icon sheet:** only the seven current core items.
 
-After the style and scale reference is approved, attach it to every later batch. Also attach the separate grid/footprint guide. The guide explains the ground area and relative size; the style reference explains the artistic appearance.
+After the visual identity and scale references are approved, reuse them for later batches. The footprint guide explains ground occupancy and relative size; the visual identity reference explains artistic appearance.
+
+Use one isolated asset per image when a complex subject is difficult to separate. Category sheets are acceptable only when every object remains fully visible, clearly separated and easy to extract. ComfyUI is the proposed local generation environment; the exact model, quantization and optional conditioning tools remain subject to the CP07 local proof.
 
 ### Object-sheet background and presentation
 
@@ -259,8 +261,18 @@ Build additional tools only when a specific CP06 test exposes a repeatable manua
 
 1. Create a visual 2:1 grid and footprint reference board for the 128 × 64 candidate.
 2. Compare the candidate grid against the current 96 × 48 project in an isolated review; do not modify the main projection until the decision is made.
-3. Establish the Casual Toon style/scale calibration sheet across one object from each major category.
-4. Review and approve the reference before producing the separate starter batches.
+3. Establish the Enchanted Hand-Painted 2.5D calibration set across one object from each major category.
+4. Review the calibration set and approve the repeatable 2D generation workflow before producing the separate starter batches.
 5. Continue with ground tiling, extraction QA, animation and gameplay integration gates.
 
-**CP06 completion means that the starter scope, grid reference and repeatable category-batch plan are understood. It does not mean the starter asset library has been generated or approved.**
+**CP06 completion means that the starter scope, grid reference and category-batch plan are understood. It does not mean the starter asset library has been generated or approved.**
+
+## 9. CP07 art direction and calibration
+
+CP07 supersedes the earlier Casual Toon candidate with the working direction **Enchanted Hand-Painted 2.5D**. See:
+
+- **docs/CP07_VISUAL_IDENTITY.md** — central style, material, lighting, atmosphere and detail rules.
+- **docs/CP07_ASSET_GENERATION_GUIDE.md** — proposed 2D image-generation, extraction and metadata workflow.
+- **docs/CP07_CALIBRATION_SCENE_SPEC.md** — specification for the isolated Godot visual-review scene.
+
+The proposed local image-generation platform is ComfyUI, with the Qwen Image family and GGUF loading to be evaluated on the RTX 4090. ControlNet and transparency tooling are optional experiments. No 3D modelling or manual structural-map authoring is required. The calibration scene is specified but not yet implemented.

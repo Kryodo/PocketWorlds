@@ -1,15 +1,80 @@
 {
-  "schema_version": 1,
-  "milestone": "CP06",
+  "schema_version": 2,
+  "milestone": "CP07",
   "status": "planned_not_approved",
-  "scope_note": "Starter validation content only. Expand the inventory as gameplay requires; do not create the full library.",
+  "scope_note": "Starter validation content only for Sanctuary and Whispering Woods. Do not generate a complete biome or asset library in advance; expand as gameplay requires.",
   "worlds": [
     "sanctuary",
     "whispering_woods"
   ],
   "art_direction": {
-    "candidate": "casual_toon_2_5d",
-    "status": "not_locked"
+    "id": "enchanted_hand_painted_2_5d",
+    "name": "Enchanted Hand-Painted 2.5D",
+    "rendering_appearance": "painterly_stylized_realism",
+    "status": "working_direction_established_calibration_pending",
+    "description": "Rich hand-crafted fantasy artwork with controlled hand-painted surfaces, organic forms, weathered materials, dimensional lighting and an enchanted, cozy, mysterious atmosphere.",
+    "characteristics": [
+      "controlled hand-painted surface textures; intentionally rendered, not brushy",
+      "softly defined contours without heavy black outlines",
+      "dimensional shading and restrained ambient occlusion",
+      "natural, weathered and clearly differentiated materials",
+      "rich but mobile-readable detail hierarchy",
+      "coherent 2.5D perspective and believable ground contact",
+      "selective magical illumination and world-specific atmosphere"
+    ],
+    "exclusions": [
+      "generic toy-like casual town-builder appearance",
+      "heavy black outlines or flat vector fills",
+      "uncontrolled visible brush strokes, muddy smears or painterly noise",
+      "photorealism or default pixel-art rendering",
+      "modern factories, industrial production buildings or conventional suburban architecture",
+      "indiscriminate glow on ordinary objects",
+      "micro-detail that collapses at mobile scale"
+    ],
+    "production_approval": "pending_cross_category_calibration"
+  },
+  "generation_pipeline": {
+    "type": "2d_image_generation_only",
+    "platform": {
+      "name": "ComfyUI",
+      "status": "proposed_local_platform"
+    },
+    "model_family": {
+      "name": "Qwen Image",
+      "status": "leading_candidate_not_finally_selected",
+      "exact_release": "select_after_local_comfyui_compatibility_and_quality_test"
+    },
+    "gpu": {
+      "model": "NVIDIA GeForce RTX 4090",
+      "vram_gb": 24,
+      "source": "user_reported_desktop_gpu"
+    },
+    "quantization": {
+      "preferred_format": "GGUF_where_supported",
+      "initial_candidate": "Q6_K",
+      "comparison_candidate": "Q5_variant",
+      "status": "benchmark_required"
+    },
+    "controlnet": {
+      "status": "optional_not_required_for_standard_asset_generation",
+      "policy": "Use only if a tested workflow provides clear value; do not require the user to create depth, silhouette, normal or line-art maps."
+    },
+    "transparency": {
+      "status": "separate_compatibility_test",
+      "layer_diffusion": "not_assumed_compatible_with_selected_qwen_workflow",
+      "policy": "Verify genuine alpha or use a separate tested matting/extraction workflow."
+    },
+    "lora": {
+      "status": "later_option",
+      "policy": "Consider a Pocket Worlds style LoRA only after a coherent approved reference dataset exists."
+    },
+    "production_constraints": [
+      "No Blender or 3D modelling.",
+      "No manual authoring of depth, silhouette, normal or line-art maps.",
+      "Start from prompts and approved image references.",
+      "Preserve original generated sources and reusable workflow settings.",
+      "Do not lock checkpoint, quantization, ControlNet or transparency nodes before local testing."
+    ]
   },
   "projection": {
     "ratio": "2:1 dimetric",
@@ -25,7 +90,8 @@
       "axis_b": [
         -48,
         24
-      ]
+      ],
+      "status": "live_project_projection"
     },
     "candidate": {
       "cell_world_units": [
@@ -40,28 +106,43 @@
         -64,
         32
       ],
-      "cell_center_world": [
+      "cell_center_world_offset_from_top_vertex": [
+        0,
+        32
+      ],
+      "tile_image_center_anchor_1x_pixels": [
         64,
         32
       ],
+      "tile_image_center_anchor_2x_pixels": [
+        128,
+        64
+      ],
       "status": "preferred_candidate_not_implemented"
     },
-    "source_pixel_note": "The 128x64 ground-tile PNG centre anchor is (64,32); the projected world cell-centre offset from the top grid vertex is (0,32); the 2x 256x128 source PNG centre anchor is (128,64).",
-    "projected_footprint_bounds_world": "width=(columns+rows)*64; height=(columns+rows)*32"
+    "source_pixel_note": "For a 128x64 ground-tile image, the image-centre anchor is (64,32); the projected world cell-centre offset from the top grid vertex is (0,32). For a 256x128 2x source tile, the image-centre anchor is (128,64). These are different coordinate spaces.",
+    "projected_footprint_bounds_world": "width=(columns+rows)*64; height=(columns+rows)*32",
+    "policy": "Do not change the live GridProjection until the candidate has been reviewed and explicitly approved."
   },
   "reference_deliverables": [
     {
-      "id": "style_scale_reference",
-      "type": "calibration_sheet",
-      "required_examples": [
-        "large_tree",
-        "small_plant",
-        "rock",
-        "building",
-        "creature",
-        "ground_sample"
-      ],
-      "status": "not_created"
+      "id": "cp07_visual_identity",
+      "path": "docs/CP07_VISUAL_IDENTITY.md",
+      "type": "art_direction_specification",
+      "status": "created_in_cp07_documentation_batch"
+    },
+    {
+      "id": "cp07_asset_generation_guide",
+      "path": "docs/CP07_ASSET_GENERATION_GUIDE.md",
+      "type": "2d_generation_and_asset_preparation_guide",
+      "status": "created_in_cp07_documentation_batch"
+    },
+    {
+      "id": "cp07_calibration_scene_spec",
+      "path": "docs/CP07_CALIBRATION_SCENE_SPEC.md",
+      "type": "godot_review_scene_specification",
+      "planned_scene": "scenes/tests/cp07_asset_calibration_review.tscn",
+      "status": "specification_created_scene_not_implemented"
     },
     {
       "id": "grid_footprint_reference",
@@ -76,6 +157,101 @@
       "status": "scene_created_png_export_pending",
       "scene": "scenes/tests/grid_footprint_reference.tscn",
       "png_output": "assets/catalog/grid_footprint_reference.png"
+    },
+    {
+      "id": "style_scale_calibration_set",
+      "type": "cross_category_calibration_artwork",
+      "required_examples": [
+        "ancient_oak",
+        "small_plant",
+        "mossy_rock",
+        "sanctuary_cottage",
+        "starter_creature_static",
+        "ground_sample"
+      ],
+      "status": "not_generated"
+    }
+  ],
+  "calibration_assets": [
+    {
+      "id": "calibration_oak",
+      "name": "Ancient oak",
+      "category": "environmental_object",
+      "footprint": [
+        2,
+        2
+      ],
+      "tests": [
+        "foliage_rendering",
+        "canopy_overhang",
+        "wood_material",
+        "ground_contact"
+      ]
+    },
+    {
+      "id": "calibration_plant",
+      "name": "Small plant",
+      "category": "environmental_object",
+      "footprint": [
+        1,
+        1
+      ],
+      "tests": [
+        "small_scale_readability",
+        "foliage_detail",
+        "ground_contact"
+      ]
+    },
+    {
+      "id": "calibration_rock",
+      "name": "Mossy rock",
+      "category": "environmental_object",
+      "footprint": [
+        1,
+        1
+      ],
+      "tests": [
+        "stone_material",
+        "dimensional_shading",
+        "contact_shadow"
+      ]
+    },
+    {
+      "id": "calibration_cottage",
+      "name": "Sanctuary cottage",
+      "category": "building",
+      "footprint": [
+        3,
+        3
+      ],
+      "tests": [
+        "architectural_materials",
+        "scale_hierarchy",
+        "foundation_alignment"
+      ]
+    },
+    {
+      "id": "calibration_creature",
+      "name": "Starter creature static design",
+      "category": "creature",
+      "footprint": "provisional_1x1",
+      "tests": [
+        "character_rendering",
+        "world_style_match",
+        "ground_baseline"
+      ]
+    },
+    {
+      "id": "calibration_ground",
+      "name": "Ground sample",
+      "category": "ground",
+      "footprint": "tile_or_connected_patch",
+      "tests": [
+        "texture_density",
+        "seam_visibility",
+        "perspective",
+        "material_transition"
+      ]
     }
   ],
   "batches": [
@@ -94,17 +270,17 @@
       "assets": [
         {
           "id": "ground_grass_base",
-          "name": "Grass base",
+          "name": "Enchanted woodland grass base",
           "kind": "repeatable_base"
         },
         {
           "id": "ground_grass_variants",
-          "name": "Grass variations",
+          "name": "Grass variations with restrained flowers, moss or leaf litter",
           "count": 2
         },
         {
           "id": "ground_path_connections",
-          "name": "Dirt path connections",
+          "name": "Weathered woodland dirt or worn stone path connections",
           "pieces": [
             "straight",
             "end",
@@ -115,17 +291,17 @@
         },
         {
           "id": "ground_rocky_moss",
-          "name": "Rocky and mossy ground",
+          "name": "Mossy, stony woodland ground patch",
           "kind": "patch"
         },
         {
           "id": "ground_pond_water",
-          "name": "Pond water",
+          "name": "Pond or enchanted pool surface",
           "kind": "surface"
         },
         {
           "id": "ground_pond_shoreline",
-          "name": "Pond shoreline transitions",
+          "name": "Natural pond shoreline transitions",
           "pieces": [
             "edge",
             "corner"
@@ -141,11 +317,11 @@
     },
     {
       "id": "E",
-      "name": "Environmental objects",
+      "name": "Environmental objects, natural props and discoveries",
       "assets": [
         {
           "id": "starter_oak",
-          "name": "Large oak tree",
+          "name": "Ancient woodland oak with weathered trunk and layered canopy",
           "footprint": [
             2,
             2
@@ -154,7 +330,7 @@
         },
         {
           "id": "starter_berry_bush",
-          "name": "Berry bush",
+          "name": "Wild berry bush with readable fruit and organic foliage",
           "footprint": [
             1,
             1
@@ -163,7 +339,7 @@
         },
         {
           "id": "starter_moonpetal",
-          "name": "Moonpetal plant",
+          "name": "Moonpetal magical flowering plant",
           "footprint": [
             1,
             1
@@ -172,7 +348,7 @@
         },
         {
           "id": "starter_leafy_ground_plant",
-          "name": "Small leafy ground plant",
+          "name": "Small woodland ground plant",
           "footprint": [
             1,
             1
@@ -181,7 +357,7 @@
         },
         {
           "id": "starter_mossy_boulder",
-          "name": "Mossy boulder",
+          "name": "Weathered moss-covered boulder",
           "footprint": [
             1,
             1
@@ -190,19 +366,19 @@
         },
         {
           "id": "starter_fallen_log",
-          "name": "Fallen log",
+          "name": "Old fallen woodland log with weathering and moss",
           "footprint": "1x2_or_2x1_after_orientation_test",
           "gameplay": "long_low_prop"
         },
         {
           "id": "starter_ancient_marker",
-          "name": "Ancient marker",
+          "name": "Ancient rune marker or weathered standing stone",
           "footprint": "1x1_or_1x2_after_placement_test",
           "gameplay": "discovery_interaction"
         },
         {
           "id": "starter_crystal_cache",
-          "name": "Crystal cache",
+          "name": "Small concealed crystal or relic cache",
           "footprint": [
             1,
             1
@@ -213,11 +389,11 @@
     },
     {
       "id": "B",
-      "name": "Buildings and structures",
+      "name": "Hand-built fantasy buildings and structures",
       "assets": [
         {
           "id": "starter_cottage",
-          "name": "Main Sanctuary cottage",
+          "name": "Main Sanctuary cottage with timber, weathered stone and an organic roof",
           "footprint": [
             3,
             3
@@ -230,7 +406,7 @@
         },
         {
           "id": "starter_workshop",
-          "name": "Workshop / crafting shed",
+          "name": "Small rustic crafting or alchemy workshop",
           "footprint": [
             2,
             3
@@ -239,7 +415,7 @@
         },
         {
           "id": "starter_creature_habitat",
-          "name": "Creature habitat",
+          "name": "Compact handcrafted creature habitat",
           "footprint": [
             2,
             2
@@ -254,16 +430,14 @@
       "assets": [
         {
           "id": "starter_creature",
-          "name": "One starter creature",
-          "footprint": [
-            1,
-            1
-          ],
+          "name": "One expressive enchanted-world companion",
+          "footprint": "provisional_1x1",
+          "initial_static_design_required": true,
           "sprite_sheet": {
             "columns": 4,
             "rows": 3,
             "total_frames": 12,
-            "frame_size": "set_after_scale_reference",
+            "frame_size": "set_after_static_scale_calibration",
             "row_order": [
               "idle",
               "walk",
@@ -274,7 +448,7 @@
           "requirements": [
             "identical_frame_canvas",
             "stable_ground_baseline",
-            "fixed_camera_and_lighting",
+            "fixed_view_and_lighting",
             "consistent_silhouette_and_proportions",
             "no_frame_jitter"
           ]
@@ -293,22 +467,22 @@
         "moonpetal_essence",
         "rune_lantern"
       ],
-      "purpose": "Test consistent asset import and UI-scale readability only."
+      "purpose": "Test cohesive item rendering and UI-scale readability only."
     }
   ],
-  "first_review_scene_contents": [
-    "grass_area",
-    "connected_dirt_path",
-    "rocky_patch",
+  "first_integrated_review_scene_contents": [
+    "continuous_grass_area",
+    "connected_dirt_or_stone_path",
+    "rocky_mossy_patch",
     "pond_and_shoreline",
-    "cottage",
-    "workshop",
+    "sanctuary_cottage",
+    "rustic_workshop",
     "creature_habitat",
-    "oak",
+    "ancient_oak",
     "berry_bush",
-    "moonpetal",
-    "small_plant",
-    "boulder",
+    "moonpetal_plant",
+    "small_ground_plant",
+    "mossy_boulder",
     "fallen_log",
     "ancient_marker",
     "crystal_cache",
@@ -324,14 +498,19 @@
     "large_decorative_prop_collection",
     "full_inventory_icon_library",
     "all_possible_animation_states",
-    "complete_asset_management_suite"
+    "complete_asset_management_suite",
+    "3d_modelling_or_mesh_production_pipeline",
+    "manual_structural_map_authoring_for_every_asset"
   ],
   "production_rules": [
     "Keep ground sheets separate from object sheets.",
-    "Use a shared style reference and a separate visual footprint guide for every category batch.",
-    "Do not ask Gemini to infer 1x1 or 3x3 from text alone.",
-    "Normalize visible artwork bounds, ground anchor and footprint independently.",
-    "Preserve every original source sheet and extraction mask.",
-    "Do not promote assets until extraction, scale, shadows and Godot integration pass review."
+    "Use a shared visual identity reference and a separate visual footprint guide for every relevant batch.",
+    "Use 2D image generation; no Blender or 3D modelling is required.",
+    "Do not require the user to manually author depth, silhouette, normal or line-art maps.",
+    "Treat ControlNet as optional and use it only when a tested workflow provides clear value.",
+    "Do not assume LayerDiffusion is compatible with the selected Qwen workflow; verify alpha output independently.",
+    "Normalize visible artwork bounds, ground anchor and logical footprint independently.",
+    "Preserve every original generated source and any extraction mask or correction data.",
+    "Do not promote assets until extraction, scale, shadows, style consistency and Godot review pass."
   ]
 }

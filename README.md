@@ -103,3 +103,17 @@ CP06 defines only the minimum starter content required to validate Pocket Worlds
 ### CP06 grid and footprint reference
 
 Run `scenes/tests/grid_footprint_reference.tscn` with F6 to preview the proposed 128 × 64 cell standard beside the current 96 × 48 size and see the 1 × 1 through 3 × 3 logical footprints. The scene runs isolated projection and footprint assertions without changing the main world. Press **P** to export a PNG reference to `assets/catalog/grid_footprint_reference.png`. See `docs/CP06_GRID_FOOTPRINT_REFERENCE.md`.
+
+
+## CP07 — Enchanted Hand-Painted 2.5D visual identity
+
+CP07 establishes the working artistic direction for Pocket Worlds and prepares the 2D image-generation workflow. The current direction is Enchanted Hand-Painted 2.5D: painterly stylized realism, controlled surface texture, softly defined contours, natural/weathered materials, dimensional lighting and an enchanted, cozy, mysterious atmosphere.
+
+- **docs/CP07_VISUAL_IDENTITY.md** defines the central art direction.
+- **docs/CP07_ASSET_GENERATION_GUIDE.md** defines the proposed 2D image-generation, extraction, metadata and quality workflow.
+- **docs/CP07_CALIBRATION_SCENE_SPEC.md** specifies the isolated Godot review scene to be implemented after the documentation stage.
+- **assets/catalog/starter_asset_inventory.json** is the scoped starter inventory and records the working art direction and provisional generation setup.
+
+The proposed local generation environment is ComfyUI, evaluating the Qwen Image family and GGUF loading on the user's RTX 4090. Exact model versions and quantization remain subject to local compatibility and quality testing. ControlNet and transparency tooling are optional experiments, not mandatory steps. No Blender, 3D modelling or manual depth/silhouette/line-art map authoring is part of this workflow.
+
+The 128 × 64 grid remains a candidate for isolated calibration only; the live project projection is unchanged. CP07 is limited to a small cross-category calibration set and does not authorize a full asset-library build.
