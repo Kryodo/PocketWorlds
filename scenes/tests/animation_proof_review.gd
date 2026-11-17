@@ -13,24 +13,39 @@ const GRASS_PATH := "res://art_inbox/ground/Grass_Base_1024x512.png"
 const GRASS_DIRT_PATH := "res://art_inbox/ground/Grass_Dirt_1024x512.png"
 const TREE_PATH := "res://art_inbox/vegetation/Tree_01_1024.png"
 const DRAKE_STATIC_PATH := "res://art_inbox/creatures/ForestDrake_Static_1024.png"
-const DRAKE_IDLE_SHEET_PATH := "res://art_inbox/creatures/ForestDrake_Idle_Sheet_1024.png"
+const DRAKE_IDLE_SHEET_PATH := "res://art_inbox/creatures/ForestDrake_Idle_Sheet_1024_16_Frames.png"
 
 const TILE_DIRT_CELL := Vector2i(3, 2)
 const TREE_CELL := Vector2i(1, 2)
 const DRAKE_CELL := Vector2i(5, 3)
 const TREE_TARGET_HEIGHT_GCU := 4.2
-const DRAKE_TARGET_HEIGHT_GCU := 1.75
-const DEFAULT_IDLE_FPS := 4.0
+const DEFAULT_DRAKE_HEIGHT_GCU := 1.25
+const FRAME_COLUMNS := 4
+const FRAME_ROWS := 4
+const FRAME_COUNT := 16
+const FRAME_SIZE := Vector2i(256, 256)
+const DEFAULT_IDLE_FPS := 8.0
+const FALLBACK_FRAME_BOUNDS := Rect2i(Vector2i(12, 8), Vector2i(232, 240))
 
+var _ground_root: Node2D
 var _sorted_world: Node2D
 var _animated_drake: AnimatedSprite2D
 var _static_drake: Sprite2D
+var _drake_shadow: Sprite2D
 var _status_label: Label
 var _current_fps := DEFAULT_IDLE_FPS
+var _drake_height_gcu := DEFAULT_DRAKE_HEIGHT_GCU
 var _show_animation := true
+var _animated_drake_source_height := 240.0
+var _static_drake_source_height := 675.0
 
 
 func _ready() -> void:
+	_ground_root = Node2D.new()
+	_ground_root.name = "GroundTiles"
+	_ground_root.z_index = -100
+	add_child(_ground_root)
+
 	_sorted_world = Node2D.new()
 	_sorted_world.name = "YSortedWorld"
 	_sorted_world.y_sort_enabled = true
@@ -41,10 +56,14 @@ func _ready() -> void:
 	_build_drake()
 	_build_overlay()
 
-	print("ANIMATION PROOF V1 READY")
+	print("ANIMATION PROOF V2 READY")
 	print("Ground: 7x5 candidate grid, 128x64 GCU, 1024x512 source tiles at 0.125 scale.")
-	print("Drake idle: 4 frames, 2x2 sheet, %.1f FPS." % DEFAULT_IDLE_FPS)
-	print("Controls: SPACE = toggle static/idle, 1 = 2 FPS, 2 = 4 FPS, 3 = 6 FPS, R = restart idle.")
+	print("Drake idle: 16 frames, 4x4 sheet, %.1f FPS, target %.2f GCU / %.0f px." % [
+		DEFAULT_IDLE_FPS,
+		_drake_height_gcu,
+		_drake_height_gcu * CELL_SIZE.y
+	])
+	print("Controls: SPACE static/idle | 1=6 FPS 2=8 FPS 3=12 FPS | 4=1.0 GCU 5=1.25 GCU 6=1.5 GCU | R=restart")
 
 
 func _draw() -> void:
@@ -89,7 +108,7 @@ func _build_ground() -> void:
 			sprite.position = _cell_center(cell)
 			sprite.scale = GROUND_SCALE
 			sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-			_sorted_world.add_child(sprite)
+			_ground_root.add_child(sprite)
 
 
 func _build_tree() -> void:
@@ -99,7 +118,6 @@ func _build_tree() -> void:
 
 	var visible_bounds := _get_visible_bounds(tree_image)
 	if visible_bounds.size == tree_image.get_size():
-		# Fallback bounds for the supplied 1024px tree canvas if its matte could not be keyed.
 		visible_bounds = Rect2i(Vector2i(150, 85), Vector2i(730, 840))
 		push_warning("Tree alpha bounds fill the canvas; using estimated tree bounds. Check the tree matte in the scene.")
 
@@ -118,6 +136,7 @@ func _build_tree() -> void:
 	sprite.scale = Vector2.ONE * display_scale
 	sprite.position = _cell_center(TREE_CELL)
 	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	sprite.z_index = 0
 	_sorted_world.add_child(sprite)
 
 	print("Tree display: %.2f GCU tall (target %.1f), scale %.3f, anchor %s." % [
@@ -129,11 +148,11 @@ func _build_tree() -> void:
 
 
 func _build_drake() -> void:
-	var sheet := _load_png_image(DRAKE_IDLE_SHEET_PATH, "Forest Drake idle sheet", false)
+	var sheet := _load_png_image(DRAKE_IDLE_SHEET_PATH, "Forest Drake 16-frame idle sheet", false)
 	if sheet == null:
 		return
 	if sheet.get_size() != Vector2i(1024, 1024):
-		push_error("Forest Drake idle sheet must be 1024x1024 for the expected 2x2 layout.")
+		push_error("Forest Drake 16-frame sheet must be 1024x1024 for the expected 4x4 layout.")
 		return
 
 	var sprite_frames := SpriteFrames.new()
@@ -143,22 +162,26 @@ func _build_drake() -> void:
 	sprite_frames.set_animation_speed(&"idle", DEFAULT_IDLE_FPS)
 
 	var bounds_per_frame: Array[Rect2i] = []
-	for frame_index in range(4):
-		var column := frame_index % 2
-		var row := int(frame_index / 2)
-		var region := Rect2i(column * 512, row * 512, 512, 512)
+	var frames_with_opaque_background := 0
+
+	for frame_index in range(FRAME_COUNT):
+		var column := frame_index % FRAME_COLUMNS
+		var row := int(frame_index / FRAME_COLUMNS)
+		var region := Rect2i(column * FRAME_SIZE.x, row * FRAME_SIZE.y, FRAME_SIZE.x, FRAME_SIZE.y)
 		var frame_image := sheet.get_region(region)
 
-		var matte_removed := _remove_uniform_corner_matte(frame_image, "Drake idle frame %d" % (frame_index + 1))
+		# Only remove a true, uniform corner matte. Never guess at a complex background.
+		var matte_removed := _remove_uniform_corner_matte(frame_image, "Drake idle frame %02d" % (frame_index + 1))
+		var frame_alpha := frame_image.detect_alpha()
 		var frame_bounds := _get_visible_bounds(frame_image)
-		if frame_bounds.size == Vector2i(512, 512):
-			# Estimated character bounds keep the display scale useful if stray opaque pixels remain.
-			frame_bounds = Rect2i(Vector2i(55, 65), Vector2i(405, 390))
-			if not matte_removed and frame_image.detect_alpha() == Image.ALPHA_NONE:
-				push_warning("Drake frame %d has an opaque, non-uniform background. It may need another Photoshop matte pass." % (frame_index + 1))
+		if frame_alpha == Image.ALPHA_NONE and not matte_removed:
+			frames_with_opaque_background += 1
+			frame_bounds = FALLBACK_FRAME_BOUNDS
+		elif frame_bounds.size == FRAME_SIZE:
+			frame_bounds = FALLBACK_FRAME_BOUNDS
 
 		bounds_per_frame.append(frame_bounds)
-		_report_image("Drake frame %d (matte removed: %s)" % [frame_index + 1, str(matte_removed)], frame_image)
+		_report_frame("Drake frame %02d" % (frame_index + 1), frame_image, matte_removed)
 		sprite_frames.add_frame(&"idle", ImageTexture.create_from_image(frame_image))
 
 	var average_anchor := Vector2.ZERO
@@ -172,22 +195,31 @@ func _build_drake() -> void:
 
 	average_anchor /= float(bounds_per_frame.size())
 	average_height /= float(bounds_per_frame.size())
+	_animated_drake_source_height = average_height
 
-	var target_height := DRAKE_TARGET_HEIGHT_GCU * CELL_SIZE.y
-	var display_scale := target_height / maxf(average_height, 1.0)
-	var frame_offset := Vector2(256.0, 256.0) - average_anchor
+	if frames_with_opaque_background > 0:
+		push_warning("%d of 16 idle frames have no usable alpha and no uniform removable corner matte. The sheet background may remain visible; clean the sheet in Photoshop if this occurs in the preview." % frames_with_opaque_background)
 
 	_animated_drake = AnimatedSprite2D.new()
 	_animated_drake.name = "ForestDrake_Idle"
 	_animated_drake.sprite_frames = sprite_frames
 	_animated_drake.animation = &"idle"
 	_animated_drake.centered = true
-	_animated_drake.offset = frame_offset
-	_animated_drake.scale = Vector2.ONE * display_scale
+	_animated_drake.offset = Vector2(FRAME_SIZE) * 0.5 - average_anchor
 	_animated_drake.position = _cell_center(DRAKE_CELL)
 	_animated_drake.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	_animated_drake.play(&"idle")
+	_animated_drake.z_index = 2
 	_sorted_world.add_child(_animated_drake)
+
+	# Static, soft contact shadow independent of the animation frames.
+	_drake_shadow = Sprite2D.new()
+	_drake_shadow.name = "ForestDrake_ContactShadow"
+	_drake_shadow.texture = _create_contact_shadow_texture()
+	_drake_shadow.centered = true
+	_drake_shadow.position = _cell_center(DRAKE_CELL) + Vector2(0.0, 3.0)
+	_drake_shadow.scale = Vector2(0.78, 0.68)
+	_drake_shadow.z_index = 1
+	_sorted_world.add_child(_drake_shadow)
 
 	var static_image := _load_png_image(DRAKE_STATIC_PATH, "Forest Drake static", true)
 	if static_image != null:
@@ -199,25 +231,51 @@ func _build_drake() -> void:
 			float(static_bounds.position.x) + float(static_bounds.size.x) * 0.5,
 			float(static_bounds.position.y + static_bounds.size.y)
 		)
-		var static_scale := target_height / maxf(float(static_bounds.size.y), 1.0)
+		_static_drake_source_height = float(static_bounds.size.y)
 
 		_static_drake = Sprite2D.new()
 		_static_drake.name = "ForestDrake_Static_Comparison"
 		_static_drake.texture = ImageTexture.create_from_image(static_image)
 		_static_drake.centered = true
 		_static_drake.offset = Vector2(static_image.get_width() * 0.5, static_image.get_height() * 0.5) - static_anchor
-		_static_drake.scale = Vector2.ONE * static_scale
 		_static_drake.position = _cell_center(DRAKE_CELL)
 		_static_drake.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		_static_drake.z_index = 2
 		_static_drake.visible = false
 		_sorted_world.add_child(_static_drake)
 
-	print("Drake display: %.2f GCU tall (target %.2f), scale %.3f, shared frame anchor %s." % [
-		average_height * display_scale / CELL_SIZE.y,
-		DRAKE_TARGET_HEIGHT_GCU,
-		display_scale,
-		str(average_anchor)
+	_apply_drake_scale()
+	_animated_drake.play(&"idle")
+
+	print("Drake idle: %d frames, %dx%d grid, frame size %dx%d, %.1f FPS." % [
+		FRAME_COUNT, FRAME_COLUMNS, FRAME_ROWS, FRAME_SIZE.x, FRAME_SIZE.y, DEFAULT_IDLE_FPS
 	])
+
+
+func _create_contact_shadow_texture() -> Texture2D:
+	var image := Image.create(128, 40, false, Image.FORMAT_RGBA8)
+	var center := Vector2(63.5, 19.5)
+	for y in range(image.get_height()):
+		for x in range(image.get_width()):
+			var dx := (float(x) - center.x) / 59.0
+			var dy := (float(y) - center.y) / 16.0
+			var distance_squared := dx * dx + dy * dy
+			var falloff := clampf(1.0 - distance_squared, 0.0, 1.0)
+			var alpha := 0.26 * falloff * falloff
+			image.set_pixel(x, y, Color(0.075, 0.105, 0.075, alpha))
+	return ImageTexture.create_from_image(image)
+
+
+func _apply_drake_scale() -> void:
+	var target_height_px := _drake_height_gcu * CELL_SIZE.y
+	if _animated_drake != null:
+		var scale_value := target_height_px / maxf(_animated_drake_source_height, 1.0)
+		_animated_drake.scale = Vector2.ONE * scale_value
+	if _static_drake != null:
+		var static_scale := target_height_px / maxf(_static_drake_source_height, 1.0)
+		_static_drake.scale = Vector2.ONE * static_scale
+	if _status_label != null:
+		_update_status()
 
 
 func _load_png_image(path: String, label: String, try_corner_matte: bool) -> Image:
@@ -242,7 +300,7 @@ func _load_png_image(path: String, label: String, try_corner_matte: bool) -> Ima
 	var matte_removed := false
 	if try_corner_matte:
 		matte_removed = _remove_uniform_corner_matte(image, label)
-	_report_image("%s (corner matte removed: %s)" % [label, str(matte_removed)], image)
+	_report_image("%s (corner matte removed: %s)" % [label, str(matte_removed)], image, matte_removed)
 	return image
 
 
@@ -309,7 +367,6 @@ func _get_visible_bounds(image: Image) -> Rect2i:
 	var max_x := -1
 	var max_y := -1
 
-	# Ignore isolated one- or two-pixel matte specks when finding the visual bounds.
 	for y in range(height):
 		var visible_in_row := 0
 		for x in range(width):
@@ -333,20 +390,32 @@ func _get_visible_bounds(image: Image) -> Rect2i:
 	return Rect2i(Vector2i(min_x, min_y), Vector2i(max_x - min_x + 1, max_y - min_y + 1))
 
 
-func _report_image(label: String, image: Image) -> void:
-	var alpha_name := "NONE"
-	match image.detect_alpha():
-		Image.ALPHA_BIT:
-			alpha_name = "BIT"
-		Image.ALPHA_BLEND:
-			alpha_name = "BLEND"
-	var used := _get_visible_bounds(image)
-	print("[AnimationProof] %s | %dx%d | alpha=%s | visible_bounds=%s" % [
+func _report_frame(label: String, image: Image, matte_removed: bool) -> void:
+	var corners: Array[Color] = [
+		image.get_pixel(3, 3),
+		image.get_pixel(image.get_width() - 4, 3),
+		image.get_pixel(3, image.get_height() - 4),
+		image.get_pixel(image.get_width() - 4, image.get_height() - 4)
+	]
+	print("[AnimationProof] %s | alpha_mode=%d | matte_removed=%s | corners=%s,%s,%s,%s" % [
+		label,
+		image.detect_alpha(),
+		str(matte_removed),
+		str(corners[0]),
+		str(corners[1]),
+		str(corners[2]),
+		str(corners[3])
+	])
+
+
+func _report_image(label: String, image: Image, matte_removed: bool) -> void:
+	print("[AnimationProof] %s | %dx%d | alpha_mode=%d | matte_removed=%s | visible_bounds=%s" % [
 		label,
 		image.get_width(),
 		image.get_height(),
-		alpha_name,
-		str(used)
+		image.detect_alpha(),
+		str(matte_removed),
+		str(_get_visible_bounds(image))
 	])
 
 
@@ -358,7 +427,7 @@ func _build_overlay() -> void:
 
 	var title := Label.new()
 	title.position = Vector2(24.0, 16.0)
-	title.text = "POCKET WORLDS  |  ANIMATION PROOF V1"
+	title.text = "POCKET WORLDS  |  ANIMATION PROOF V2"
 	title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", Color("#f3eddc"))
 	canvas.add_child(title)
@@ -371,9 +440,9 @@ func _build_overlay() -> void:
 	_update_status()
 
 	var controls := Label.new()
-	controls.position = Vector2(24.0, 682.0)
-	controls.text = "SPACE  Static / Idle     1  2 FPS     2  4 FPS     3  6 FPS     R  Restart"
-	controls.add_theme_font_size_override("font_size", 15)
+	controls.position = Vector2(24.0, 676.0)
+	controls.text = "SPACE static/idle | 1 6 FPS | 2 8 FPS | 3 12 FPS | 4 64px | 5 80px | 6 96px | R restart"
+	controls.add_theme_font_size_override("font_size", 14)
 	controls.add_theme_color_override("font_color", Color("#f3eddc"))
 	canvas.add_child(controls)
 
@@ -381,10 +450,11 @@ func _build_overlay() -> void:
 func _update_status() -> void:
 	if _status_label == null:
 		return
+	var size_text := "%.2f GCU / %.0f px" % [_drake_height_gcu, _drake_height_gcu * CELL_SIZE.y]
 	if _show_animation:
-		_status_label.text = "FOREST DRAKE  •  IDLE ANIMATION  •  %.1f FPS" % _current_fps
+		_status_label.text = "FOREST DRAKE  •  16-FRAME IDLE  •  %.1f FPS  •  %s" % [_current_fps, size_text]
 	else:
-		_status_label.text = "FOREST DRAKE  •  STATIC REFERENCE"
+		_status_label.text = "FOREST DRAKE  •  STATIC REFERENCE  •  %s" % size_text
 
 
 func _set_idle_speed(next_fps: float) -> void:
@@ -392,6 +462,12 @@ func _set_idle_speed(next_fps: float) -> void:
 	if _animated_drake != null and _animated_drake.sprite_frames != null:
 		_animated_drake.sprite_frames.set_animation_speed(&"idle", _current_fps)
 		_animated_drake.play(&"idle")
+	_update_status()
+
+
+func _set_drake_height_gcu(next_height: float) -> void:
+	_drake_height_gcu = next_height
+	_apply_drake_scale()
 	_update_status()
 
 
@@ -419,11 +495,17 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_SPACE:
 			_toggle_static_animation()
 		KEY_1:
-			_set_idle_speed(2.0)
-		KEY_2:
-			_set_idle_speed(4.0)
-		KEY_3:
 			_set_idle_speed(6.0)
+		KEY_2:
+			_set_idle_speed(8.0)
+		KEY_3:
+			_set_idle_speed(12.0)
+		KEY_4:
+			_set_drake_height_gcu(1.0)
+		KEY_5:
+			_set_drake_height_gcu(1.25)
+		KEY_6:
+			_set_drake_height_gcu(1.5)
 		KEY_R:
 			if _animated_drake != null:
 				_animated_drake.play(&"idle")

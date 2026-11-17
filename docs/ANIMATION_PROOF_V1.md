@@ -1,58 +1,59 @@
-# Pocket Worlds — Animation Proof V1
+# Pocket Worlds — Animation Proof V2
 
 ## Purpose
 
-An isolated review scene for the first Forest Drake idle animation and the newly uploaded painterly ground/tree assets. It does not replace the main scene, gameplay, live 96x48 projection, or any approved source PNG.
+An isolated review scene for the Forest Drake 16-frame idle animation and the uploaded painterly ground/tree assets. It does not replace the main scene, gameplay, live 96x48 projection, or any approved source PNG.
 
 ## Run
 
-Open scenes/tests/animation_proof_review.tscn in Godot 4.7 and press **F6**.
+Open `scenes/tests/animation_proof_review.tscn` in Godot 4.7 and press **F6**.
 
 ## Included assets
 
-- art_inbox/ground/Grass_Base_1024x512.png
-- art_inbox/ground/Grass_Dirt_1024x512.png
-- art_inbox/vegetation/Tree_01_1024.png
-- art_inbox/creatures/ForestDrake_Static_1024.png
-- art_inbox/creatures/ForestDrake_Idle_Sheet_1024.png
+- `art_inbox/ground/Grass_Base_1024x512.png`
+- `art_inbox/ground/Grass_Dirt_1024x512.png`
+- `art_inbox/vegetation/Tree_01_1024.png`
+- `art_inbox/creatures/ForestDrake_Static_1024.png`
+- `art_inbox/creatures/ForestDrake_Idle_Sheet_1024_16_Frames.png`
 
 The ground board is 7x5 cells using the isolated candidate Ground Cell Unit of 128x64. The source ground images are displayed at 0.125 scale. One central cell uses the integrated dirt-patch tile; all other cells use the base grass tile.
 
-The tree is initially fitted to 4.2 GCU of visible height. The creature is initially fitted to 1.75 GCU of visible height. These are review values, not final asset-definition or collision footprints.
+The tree is initially fitted to 4.2 GCU of visible height. The Forest Drake defaults to 1.25 GCU (80 world pixels) and can be adjusted at runtime for comparison. These are review values, not final asset-definition or collision footprints.
 
-## Dragon animation
+## Drake animation sheet
 
-The idle sheet is sliced as four 512x512 frames in reading order: top-left, top-right, bottom-left, bottom-right.
+The 1024x1024 idle sheet is sliced as 16 frames in a 4x4 grid. Each frame is 256x256 pixels and is loaded into a runtime SpriteFrames resource in reading order, left-to-right and top-to-bottom.
 
-The frames are loaded into a runtime SpriteFrames resource and played as a looping idle animation. Default playback is 4 FPS.
+Default playback is 8 FPS (a 2-second 16-frame cycle). The static Drake is placed at the same ground anchor and display height for direct comparison.
 
-The static Drake is placed at the same ground anchor and display height for direct comparison.
+A separate soft contact shadow is generated procedurally at runtime and remains stationary beneath the creature. It is not baked into the animation frames.
 
 ### Controls
 
-- **Space:** toggle between the static reference and the animated idle.
-- **1:** play at 2 FPS.
-- **2:** play at 4 FPS.
-- **3:** play at 6 FPS.
+- **Space:** toggle between static reference and animated idle.
+- **1:** 6 FPS.
+- **2:** 8 FPS.
+- **3:** 12 FPS.
+- **4:** display height 1.0 GCU (64 px).
+- **5:** display height 1.25 GCU (80 px).
+- **6:** display height 1.5 GCU (96 px).
 - **R:** restart the idle loop.
 
 ## Transparency diagnostics
 
-The review script reads the PNGs into runtime Image objects and prints their detected alpha mode and visible bounds.
+The review script inspects each 256x256 frame's alpha mode and four corner colours. It only removes a frame background automatically when its four corners indicate one nearly uniform matte. It does not attempt aggressive per-pixel background removal when the background is non-uniform, because that could damage the creature's pale belly, green edges, horns or wings.
 
-For the tree and static Drake only, if all four canvas corners are opaque and nearly the same colour, the script removes that uniform corner matte in memory. The source PNGs are not modified. Existing alpha is otherwise preserved.
+If the running scene shows coloured blocks or image remnants around the Drake, inspect the Output panel for each frame's alpha mode and corner samples. Clean the sheet in Photoshop and re-export a transparent PNG rather than relying on a broad colour key.
 
-The same uniform-corner test is applied independently to each animation frame. If a frame has an opaque, non-uniform background, the script prints a warning; it does not attempt an unreliable automatic key. Such a frame should be cleaned in Photoshop and re-exported as transparent PNG.
-
-Ground images are not automatically colour-keyed because their grass palette must not be damaged. Their alpha should already be transparent outside the diamond.
+The tree and static Drake use the same cautious uniform-corner matte cleanup in memory. Original PNGs are not modified. Ground images are not colour-keyed.
 
 ## Layout
 
-- Background: neutral deep green for checking transparent edges.
+- Background: neutral deep green for transparency and edge inspection.
 - Ground: 7x5 candidate 128x64 diamond grid, centred in the 1280x720 review viewport.
 - Tree: rear-left of the ground patch.
-- Drake: front-right, with static/animated toggle.
-- All world sprites share a Y-sorted parent. Each object's node position is its ground-contact anchor, independent of the full sprite canvas.
+- Drake: front-right, with static/animated toggle and separate fixed shadow.
+- Ground tiles render below the object layer. The tree, shadow and Drake are Y-sorted as world objects.
 
 ## Non-destructive boundary
 
