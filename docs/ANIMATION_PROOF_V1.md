@@ -68,3 +68,25 @@ All changes are limited to this test scene, script and document. Existing gamepl
 ## Skeletal breathing visibility adjustment
 
 The skeletal idle was initially too subtle at the creature's in-game scale: peak chest scale was only 1.035 × 1.025 and rotation was -0.012 radians. The proof now deliberately exaggerates the peak chest scale to 1.16 × 1.12 and rotation to -0.05 radians, with intermediate easing keys. This is a diagnostic amplitude, not a final creature-animation target. First verify that the chest visibly deforms while the ground anchor remains fixed; then reduce the motion toward a natural idle.
+
+
+## V3 — Independent multi-part idle proof
+
+The skeletal test now uses one 49×49 textured mesh and five weighted influences:
+- Fixed `RootAnchor`, which retains the ground reference and the foot area
+- `TorsoBone`, for a visible inhale/exhale, slight vertical lift and settling motion
+- `HeadNeckBone`, for occasional head turns
+- `WingBone`, for intermittent wing adjustments
+- `TailBone`, for a slower independent sway
+
+The four animated parts use separate looping AnimationPlayers, so they can run simultaneously without being forced into one shared cycle. Their loop durations differ deliberately: body 3.6s, head 6.3s, wing 7.8s and tail 5.1s. This causes their movements to overlap at different moments instead of repeating as one synchronized gesture.
+
+The mesh influence regions are smooth elliptical fields with normalized weights. These pivot locations and influence regions are estimates on the existing flat source image, not final hand-painted weights. Watch especially for unwanted stretching around the neck, shoulder/wing junction, tail root and hind leg.
+
+The current proof remains a standing idle. It does not yet prove lying down, getting up or walking. Those need separate pose design and likely a hybrid of hand-prepared cutout parts, skeletal movement and generated/painted key poses. Do not treat this rig as a production-ready universal creature rig.
+
+### V3 test
+
+Open `scenes/tests/animation_proof_review.tscn` with Godot 4.7 and run it with F6. The default RIG mode now shows the independent body, head, wing and tail layers together. Press Space to compare the original 16-frame sheet and static image; press R to restart the current rig layers. Use 4/5/6 to compare the three display sizes.
+
+Runtime validation is still required. Inspect both the perceived life and deformation artifacts; if one region distorts badly, adjust that region's influence field or replace it with a separate cutout layer rather than increasing the movement.

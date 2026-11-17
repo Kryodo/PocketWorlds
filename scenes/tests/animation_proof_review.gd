@@ -34,6 +34,7 @@ var _animated_drake: AnimatedSprite2D
 var _static_drake: Sprite2D
 var _rigged_drake: Node2D
 var _rig_animation_player: AnimationPlayer
+var _rig_animation_players: Array[AnimationPlayer] = []
 var _chest_bone: Bone2D
 var _drake_shadow: Sprite2D
 var _status_label: Label
@@ -62,14 +63,14 @@ func _ready() -> void:
 	_build_drake()
 	_build_overlay()
 
-	print("ANIMATION PROOF V2 READY")
+	print("ANIMATION PROOF V3 READY")
 	print("Ground: 7x5 candidate grid, 128x64 GCU, 1024x512 source tiles at 0.125 scale.")
 	print("Drake idle: 16 frames, 4x4 sheet, %.1f FPS, target %.2f GCU / %.0f px." % [
 		DEFAULT_IDLE_FPS,
 		_drake_height_gcu,
 		_drake_height_gcu * CELL_SIZE.y
 	])
-	print("Controls: SPACE cycle RIG/SHEET/STATIC | 4=1.0 GCU 5=1.25 GCU 6=1.5 GCU | R=restart")
+	print("Controls: SPACE cycle RIG/SHEET/STATIC | 4=1.0 GCU 5=1.25 GCU 6=1.5 GCU | R=restart all rig layers")
 
 
 func _draw() -> void:
@@ -270,7 +271,7 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	)
 
 	_rigged_drake = Node2D.new()
-	_rigged_drake.name = "ForestDrake_SkeletalRig"
+	_rigged_drake.name = "ForestDrake_MultiPartRig"
 	_rigged_drake.position = _cell_center(DRAKE_CELL)
 	_rigged_drake.z_index = 2
 	_sorted_world.add_child(_rigged_drake)
@@ -286,28 +287,69 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	root_bone.length = 90.0
 	skeleton.add_child(root_bone)
 
-	_chest_bone = Bone2D.new()
-	_chest_bone.name = "ChestBone"
-	_chest_bone.position = Vector2(520.0, 565.0) - ground_anchor
-	_chest_bone.set_autocalculate_length_and_angle(false)
-	_chest_bone.length = 65.0
-	root_bone.add_child(_chest_bone)
+	# These pivots are approximate articulation points on the approved flat artwork.
+	# Keep the root at the ground anchor; all secondary bones inherit from the torso.
+	var torso_pivot := Vector2(520.0, 565.0)
+	var head_pivot := Vector2(438.0, 535.0)
+	var wing_pivot := Vector2(590.0, 510.0)
+	var tail_pivot := Vector2(690.0, 585.0)
 
-	# Store the exact default pose before applying any animation.
+	var torso_bone := Bone2D.new()
+	torso_bone.name = "TorsoBone"
+	torso_bone.position = torso_pivot - ground_anchor
+	torso_bone.set_autocalculate_length_and_angle(false)
+	torso_bone.length = 105.0
+	root_bone.add_child(torso_bone)
+	_chest_bone = torso_bone
+
+	var head_bone := Bone2D.new()
+	head_bone.name = "HeadNeckBone"
+	head_bone.position = head_pivot - torso_pivot
+	head_bone.set_autocalculate_length_and_angle(false)
+	head_bone.length = 82.0
+	torso_bone.add_child(head_bone)
+
+	var wing_bone := Bone2D.new()
+	wing_bone.name = "WingBone"
+	wing_bone.position = wing_pivot - torso_pivot
+	wing_bone.set_autocalculate_length_and_angle(false)
+	wing_bone.length = 65.0
+	torso_bone.add_child(wing_bone)
+
+	var tail_bone := Bone2D.new()
+	tail_bone.name = "TailBone"
+	tail_bone.position = tail_pivot - torso_pivot
+	tail_bone.set_autocalculate_length_and_angle(false)
+	tail_bone.length = 90.0
+	torso_bone.add_child(tail_bone)
+
+	# Cache the default pose before animation starts.
 	root_bone.rest = root_bone.transform
-	_chest_bone.rest = _chest_bone.transform
+	torso_bone.rest = torso_bone.transform
+	head_bone.rest = head_bone.transform
+	wing_bone.rest = wing_bone.transform
+	tail_bone.rest = tail_bone.transform
 
-	# A regular UV grid gives the chest enough internal vertices to deform smoothly.
-	const GRID_COLUMNS := 33
-	const GRID_ROWS := 33
+	# A denser grid gives the narrow tail and wing membrane more vertices to bend.
+	const GRID_COLUMNS := 49
+	const GRID_ROWS := 49
 	var points := PackedVector2Array()
 	var uvs := PackedVector2Array()
 	var root_weights := PackedFloat32Array()
-	var chest_weights := PackedFloat32Array()
+	var torso_weights := PackedFloat32Array()
+	var head_weights := PackedFloat32Array()
+	var wing_weights := PackedFloat32Array()
+	var tail_weights := PackedFloat32Array()
 	var mesh_polygons: Array = []
 
-	var chest_center := Vector2(520.0, 565.0)
-	var chest_radii := Vector2(190.0, 145.0)
+	var torso_center := Vector2(520.0, 620.0)
+	var torso_radii := Vector2(225.0, 175.0)
+	var head_center := Vector2(385.0, 395.0)
+	var head_radii := Vector2(215.0, 205.0)
+	var wing_center := Vector2(620.0, 468.0)
+	var wing_radii := Vector2(165.0, 135.0)
+	var tail_center := Vector2(790.0, 650.0)
+	var tail_radii := Vector2(155.0, 140.0)
 
 	for row in range(GRID_ROWS):
 		for column in range(GRID_COLUMNS):
@@ -318,15 +360,26 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 			points.append(source_point - ground_anchor)
 			uvs.append(source_point)
 
-			var normalized_distance := Vector2(
-				(source_point.x - chest_center.x) / chest_radii.x,
-				(source_point.y - chest_center.y) / chest_radii.y
-			).length()
-			var transition := clampf((normalized_distance - 0.30) / 0.70, 0.0, 1.0)
-			var smooth_transition := transition * transition * (3.0 - 2.0 * transition)
-			var chest_weight := 0.82 * (1.0 - smooth_transition)
-			chest_weights.append(chest_weight)
-			root_weights.append(1.0 - chest_weight)
+			var torso_weight := _elliptical_bone_influence(source_point, torso_center, torso_radii, 0.92)
+			var head_weight := _elliptical_bone_influence(source_point, head_center, head_radii, 0.96)
+			var wing_weight := _elliptical_bone_influence(source_point, wing_center, wing_radii, 0.92)
+			var tail_weight := _elliptical_bone_influence(source_point, tail_center, tail_radii, 0.95)
+
+			# Leave a small root influence everywhere, and normalize overlaps so weights sum to one.
+			var total_weight := torso_weight + head_weight + wing_weight + tail_weight
+			if total_weight > 0.94:
+				var normalization := 0.94 / total_weight
+				torso_weight *= normalization
+				head_weight *= normalization
+				wing_weight *= normalization
+				tail_weight *= normalization
+				total_weight = 0.94
+
+			root_weights.append(1.0 - total_weight)
+			torso_weights.append(torso_weight)
+			head_weights.append(head_weight)
+			wing_weights.append(wing_weight)
+			tail_weights.append(tail_weight)
 
 	for row in range(GRID_ROWS - 1):
 		for column in range(GRID_COLUMNS - 1):
@@ -342,7 +395,7 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 			]))
 
 	var character_mesh := Polygon2D.new()
-	character_mesh.name = "TexturedDeformMesh"
+	character_mesh.name = "TexturedMultiBoneMesh"
 	character_mesh.texture = ImageTexture.create_from_image(character_image)
 	character_mesh.polygon = points
 	character_mesh.uv = uvs
@@ -354,58 +407,101 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 
 	character_mesh.skeleton = character_mesh.get_path_to(skeleton)
 	character_mesh.add_bone(character_mesh.get_path_to(root_bone), root_weights)
-	character_mesh.add_bone(character_mesh.get_path_to(_chest_bone), chest_weights)
+	character_mesh.add_bone(character_mesh.get_path_to(torso_bone), torso_weights)
+	character_mesh.add_bone(character_mesh.get_path_to(head_bone), head_weights)
+	character_mesh.add_bone(character_mesh.get_path_to(wing_bone), wing_weights)
+	character_mesh.add_bone(character_mesh.get_path_to(tail_bone), tail_weights)
 
-	_rig_animation_player = AnimationPlayer.new()
-	_rig_animation_player.name = "RigAnimationPlayer"
-	_rig_animation_player.root_node = NodePath("..")
-	_rigged_drake.add_child(_rig_animation_player)
+	_rig_animation_players.clear()
 
-	var idle_animation := Animation.new()
-	idle_animation.resource_name = "idle"
-	idle_animation.length = 2.4
-	idle_animation.loop_mode = Animation.LOOP_LINEAR
+	# Layer 1: whole upper body breathes and settles. Root and feet remain grounded.
+	var body_animation := Animation.new()
+	body_animation.resource_name = "body_breathing"
+	body_animation.length = 3.6
+	body_animation.loop_mode = Animation.LOOP_LINEAR
+	var torso_local := torso_pivot - ground_anchor
+	_add_bone_value_track(body_animation, "Skeleton2D/RootAnchor/TorsoBone:position",
+		PackedFloat64Array([0.0, 0.9, 1.6, 2.4, 3.6]),
+		[torso_local, torso_local + Vector2(0.0, -5.0), torso_local + Vector2(0.0, -10.0), torso_local + Vector2(0.0, -3.0), torso_local])
+	_add_bone_value_track(body_animation, "Skeleton2D/RootAnchor/TorsoBone:scale",
+		PackedFloat64Array([0.0, 0.9, 1.6, 2.4, 3.6]),
+		[Vector2.ONE, Vector2(1.035, 1.05), Vector2(1.07, 1.10), Vector2(1.025, 1.025), Vector2.ONE])
+	_add_bone_value_track(body_animation, "Skeleton2D/RootAnchor/TorsoBone:rotation",
+		PackedFloat64Array([0.0, 0.9, 1.6, 2.4, 3.6]),
+		[0.0, -0.01, -0.02, -0.006, 0.0])
+	_rig_animation_player = _create_rig_layer_player("BodyBreathingPlayer", body_animation)
 
-	var scale_track := idle_animation.add_track(Animation.TYPE_VALUE)
-	idle_animation.track_set_path(
-		scale_track,
-		NodePath("Skeleton2D/RootAnchor/ChestBone:scale")
-	)
-	idle_animation.track_set_interpolation_type(scale_track, Animation.INTERPOLATION_CUBIC)
-	idle_animation.track_insert_key(scale_track, 0.0, Vector2.ONE)
-	idle_animation.track_insert_key(scale_track, 0.6, Vector2(1.06, 1.04))
-	idle_animation.track_insert_key(scale_track, 1.2, Vector2(1.16, 1.12))
-	idle_animation.track_insert_key(scale_track, 1.8, Vector2(1.06, 1.04))
-	idle_animation.track_insert_key(scale_track, 2.4, Vector2.ONE)
+	# Layer 2: the head pauses, looks around, then returns to a relaxed pose.
+	var head_animation := Animation.new()
+	head_animation.resource_name = "head_idle"
+	head_animation.length = 6.3
+	head_animation.loop_mode = Animation.LOOP_LINEAR
+	_add_bone_value_track(head_animation, "Skeleton2D/RootAnchor/TorsoBone/HeadNeckBone:rotation",
+		PackedFloat64Array([0.0, 0.9, 1.55, 2.2, 3.0, 4.4, 5.15, 6.3]),
+		[0.0, 0.0, -0.075, -0.045, 0.0, 0.0, 0.045, 0.0])
+	_rig_animation_players.append(_create_rig_layer_player("HeadIdlePlayer", head_animation))
 
-	var rotation_track := idle_animation.add_track(Animation.TYPE_VALUE)
-	idle_animation.track_set_path(
-		rotation_track,
-		NodePath("Skeleton2D/RootAnchor/ChestBone:rotation")
-	)
-	idle_animation.track_set_interpolation_type(rotation_track, Animation.INTERPOLATION_CUBIC)
-	idle_animation.track_insert_key(rotation_track, 0.0, 0.0)
-	idle_animation.track_insert_key(rotation_track, 0.6, -0.018)
-	idle_animation.track_insert_key(rotation_track, 1.2, -0.05)
-	idle_animation.track_insert_key(rotation_track, 1.8, -0.018)
-	idle_animation.track_insert_key(rotation_track, 2.4, 0.0)
+	# Layer 3: one visible wing makes an occasional adjustment, not a constant flap.
+	var wing_animation := Animation.new()
+	wing_animation.resource_name = "wing_settle"
+	wing_animation.length = 7.8
+	wing_animation.loop_mode = Animation.LOOP_LINEAR
+	_add_bone_value_track(wing_animation, "Skeleton2D/RootAnchor/TorsoBone/WingBone:rotation",
+		PackedFloat64Array([0.0, 1.6, 2.1, 2.7, 3.5, 5.2, 5.7, 6.2, 7.8]),
+		[0.0, 0.0, -0.11, -0.075, 0.0, 0.0, 0.055, 0.0, 0.0])
+	_rig_animation_players.append(_create_rig_layer_player("WingIdlePlayer", wing_animation))
 
-	var animation_library := AnimationLibrary.new()
-	var library_error := animation_library.add_animation(&"idle", idle_animation)
-	if library_error != OK:
-		push_error("Could not register Forest Drake skeletal idle animation.")
-		return
-	_rig_animation_player.add_animation_library(&"", animation_library)
-	_rig_animation_player.play(&"idle")
+	# Layer 4: the tail has its own slower, offset sway cycle.
+	var tail_animation := Animation.new()
+	tail_animation.resource_name = "tail_sway"
+	tail_animation.length = 5.1
+	tail_animation.loop_mode = Animation.LOOP_LINEAR
+	_add_bone_value_track(tail_animation, "Skeleton2D/RootAnchor/TorsoBone/TailBone:rotation",
+		PackedFloat64Array([0.0, 0.8, 1.5, 2.2, 3.1, 3.8, 5.1]),
+		[0.0, 0.0, -0.11, -0.05, 0.095, 0.04, 0.0])
+	_rig_animation_players.append(_create_rig_layer_player("TailIdlePlayer", tail_animation))
 
-	print("[AnimationProof] Skeletal rig created: 33x33 UV grid, %d vertices, %d quads, chest weight max 0.82; deliberately exaggerated breathing for visibility." % [
+	print("[AnimationProof] Multi-part rig: 49x49 grid, %d vertices, %d quads; torso/head/wing/tail weights active." % [
 		points.size(),
 		mesh_polygons.size()
 	])
-	print("[AnimationProof] Fixed root anchor at source image %s; chest pivot at %s." % [
-		str(ground_anchor),
-		str(chest_center)
-	])
+	print("[AnimationProof] Independent idle layers: body 3.6s, head 6.3s, wing 7.8s, tail 5.1s. The root anchor is fixed.")
+
+
+func _elliptical_bone_influence(point: Vector2, center: Vector2, radii: Vector2, maximum_weight: float) -> float:
+	var normalized_distance := Vector2(
+		(point.x - center.x) / radii.x,
+		(point.y - center.y) / radii.y
+	).length()
+	var transition := clampf((normalized_distance - 0.22) / 0.78, 0.0, 1.0)
+	var smooth_transition := transition * transition * (3.0 - 2.0 * transition)
+	return maximum_weight * (1.0 - smooth_transition)
+
+
+func _add_bone_value_track(animation: Animation, property_path: String, key_times: PackedFloat64Array, key_values: Array) -> void:
+	var track_index := animation.add_track(Animation.TYPE_VALUE)
+	animation.track_set_path(track_index, NodePath(property_path))
+	animation.track_set_interpolation_type(track_index, Animation.INTERPOLATION_CUBIC)
+	for index in range(key_times.size()):
+		animation.track_insert_key(track_index, key_times[index], key_values[index])
+
+
+func _create_rig_layer_player(player_name: String, animation: Animation) -> AnimationPlayer:
+	var player := AnimationPlayer.new()
+	player.name = player_name
+	player.root_node = NodePath("..")
+	_rigged_drake.add_child(player)
+
+	var animation_library := AnimationLibrary.new()
+	var library_error := animation_library.add_animation(&"idle", animation)
+	if library_error != OK:
+		push_error("Could not register Forest Drake animation layer: %s" % player_name)
+		return player
+
+	player.add_animation_library(&"", animation_library)
+	player.play(&"idle")
+	_rig_animation_players.append(player)
+	return player
 
 
 func _create_contact_shadow_texture() -> Texture2D:
@@ -586,7 +682,7 @@ func _build_overlay() -> void:
 
 	var title := Label.new()
 	title.position = Vector2(24.0, 16.0)
-	title.text = "POCKET WORLDS  |  ANIMATION PROOF V2"
+	title.text = "POCKET WORLDS  |  ANIMATION PROOF V3"
 	title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", Color("#f3eddc"))
 	canvas.add_child(title)
@@ -600,7 +696,7 @@ func _build_overlay() -> void:
 
 	var controls := Label.new()
 	controls.position = Vector2(24.0, 676.0)
-	controls.text = "SPACE cycle RIG / SHEET / STATIC | 4 64px | 5 80px | 6 96px | R restart"
+	controls.text = "SPACE cycle RIG / SHEET / STATIC | 4 64px | 5 80px | 6 96px | R restart all layers"
 	controls.add_theme_font_size_override("font_size", 14)
 	controls.add_theme_color_override("font_color", Color("#f3eddc"))
 	canvas.add_child(controls)
@@ -612,7 +708,7 @@ func _update_status() -> void:
 	var size_text := "%.2f GCU / %.0f px" % [_drake_height_gcu, _drake_height_gcu * CELL_SIZE.y]
 	match _display_mode:
 		&"rig":
-			_status_label.text = "FOREST DRAKE  •  SKELETAL IDLE  •  FIXED ROOT / CHEST DEFORMATION  •  %s" % size_text
+			_status_label.text = "FOREST DRAKE  •  MULTI-PART IDLE  •  BODY / HEAD / WING / TAIL  •  %s" % size_text
 		&"sheet":
 			_status_label.text = "FOREST DRAKE  •  16-FRAME SPRITE IDLE  •  0.15 SEC/FRAME  •  %s" % size_text
 		_:
@@ -637,11 +733,11 @@ func _set_display_mode(next_mode: StringName) -> void:
 			_animated_drake.stop()
 	if _static_drake != null:
 		_static_drake.visible = _display_mode == &"static"
-	if _rig_animation_player != null:
+	for layer_player in _rig_animation_players:
 		if _display_mode == &"rig":
-			_rig_animation_player.play(&"idle")
+			layer_player.play(&"idle")
 		else:
-			_rig_animation_player.stop()
+			layer_player.stop()
 	_update_status()
 
 
@@ -658,8 +754,8 @@ func _cycle_display_mode() -> void:
 func _restart_current_animation() -> void:
 	match _display_mode:
 		&"rig":
-			if _rig_animation_player != null:
-				_rig_animation_player.play(&"idle")
+			for layer_player in _rig_animation_players:
+				layer_player.play(&"idle")
 		&"sheet":
 			if _animated_drake != null:
 				_animated_drake.play(&"idle")
