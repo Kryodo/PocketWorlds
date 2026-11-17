@@ -1,0 +1,25 @@
+{
+  "workflow_version": 1,
+  "character": "Forest Drake",
+  "source_reference": "art_inbox/creatures/ForestDrake_Static_1024.png",
+  "source_canvas_px": [1024, 1024],
+  "source_ground_pivot_px": [505, 792],
+  "output_frame_px": [256, 256],
+  "output_sheet_columns": 4,
+  "output_sheet_rows": 4,
+  "target_pivot_px": [126.25, 198.0],
+  "body_registration_roi_px": [82, 88, 178, 174],
+  "registration_search_radius_px": 24,
+  "registration_alpha_threshold": 32,
+  "default_frame_count": 16,
+  "default_playback_fps": 8.0,
+  "chroma_key": {
+    "mode": "auto_uniform_corners",
+    "hard_distance": 28,
+    "soft_distance": 78,
+    "max_corner_spread": 48
+  },
+  "qwen_controlnet_start": 0.0,
+  "qwen_controlnet_end": 0.85,
+  "qwen_controlnet_strength": 0.68
+}
