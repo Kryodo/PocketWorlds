@@ -535,7 +535,7 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 
 	_create_posture_players()
 
-	print("[AnimationProof] Multi-part rig: 49x49 grid, %d vertices, %d quads; torso/head/wing/tail weights active." % [
+	print("[AnimationProof] Multi-part rig: 49x49 grid, %d vertices, %d quads; torso/head/wing/tail/foreleg weights active." % [
 		points.size(),
 		mesh_polygons.size()
 	])
@@ -1084,6 +1084,7 @@ func _restart_current_animation() -> void:
 		&"rig":
 			_reset_posture_to_standing()
 			for layer_player in _rig_animation_players:
+				layer_player.stop()
 				layer_player.play(&"idle")
 		&"sheet":
 			if _animated_drake != null:
