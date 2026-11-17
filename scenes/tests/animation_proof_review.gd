@@ -47,6 +47,8 @@ var _front_leg_far_rest_position := Vector2.ZERO
 var _head_rest_position := Vector2.ZERO
 var _posture_animation_player: AnimationPlayer
 var _lying_idle_player: AnimationPlayer
+var _walk_animation_player: AnimationPlayer
+var _walk_state: StringName = &"idle"
 var _posture_state: StringName = &"standing"
 var _drake_shadow: Sprite2D
 var _status_label: Label
@@ -82,7 +84,7 @@ func _ready() -> void:
 		_drake_height_gcu,
 		_drake_height_gcu * CELL_SIZE.y
 	])
-	print("Controls: L=toggle STANDING/LYING | SPACE cycle RIG/SHEET/STATIC | 4/5/6=size | R=reset standing idle")
+	print("Controls: W=toggle WALK/STAND | L=toggle STANDING/LYING | SPACE cycle RIG/SHEET/STATIC | 4/5/6=size | R=reset")
 
 
 func _draw() -> void:
@@ -615,6 +617,200 @@ func _create_posture_players() -> void:
 		return
 	_lying_idle_player.add_animation_library(&"", lying_library)
 
+	_walk_animation_player = AnimationPlayer.new()
+	_walk_animation_player.name = "WalkCyclePlayer"
+	_walk_animation_player.root_node = NodePath("..")
+	_rigged_drake.add_child(_walk_animation_player)
+	var walk_library := AnimationLibrary.new()
+	_walk_animation_player.add_animation_library(&"", walk_library)
+	_walk_animation_player.animation_finished.connect(_on_walk_animation_finished)
+
+
+func _build_walk_cycle_animation(start_values: Dictionary) -> Animation:
+	# A deliberately conservative in-place gait. Only the two already-weighted
+	# foreleg regions articulate; the rest of the body supplies readable rhythm.
+	const CYCLE_LENGTH := 1.2
+	var times := PackedFloat64Array([0.0, 0.15, 0.30, 0.45, 0.60, 0.75, 0.90, 1.05, 1.20])
+	var animation := Animation.new()
+	animation.resource_name = "walk_cycle"
+	animation.length = CYCLE_LENGTH
+	animation.loop_mode = Animation.LOOP_LINEAR
+
+	var near_position_path := "Skeleton2D/RootAnchor/FrontLegNearBone:position"
+	var far_position_path := "Skeleton2D/RootAnchor/FrontLegFarBone:position"
+	var near_rotation_path := "Skeleton2D/RootAnchor/FrontLegNearBone:rotation"
+	var far_rotation_path := "Skeleton2D/RootAnchor/FrontLegFarBone:rotation"
+	var body_position_path := "Skeleton2D/RootAnchor/BodyMotionBone:position"
+	var body_rotation_path := "Skeleton2D/RootAnchor/BodyMotionBone:rotation"
+	var torso_scale_path := "Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale"
+	var head_rotation_path := "Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation"
+	var wing_rotation_path := "Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation"
+	var tail_rotation_path := "Skeleton2D/RootAnchor/BodyMotionBone/TailBone:rotation"
+
+	var near_position := Vector2(start_values[near_position_path])
+	var far_position := Vector2(start_values[far_position_path])
+	var near_rotation := float(start_values[near_rotation_path])
+	var far_rotation := float(start_values[far_rotation_path])
+	var body_position := Vector2(start_values[body_position_path])
+	var body_rotation := float(start_values[body_rotation_path])
+	var torso_scale := Vector2(start_values[torso_scale_path])
+	var head_rotation := float(start_values[head_rotation_path])
+	var wing_rotation := float(start_values[wing_rotation_path])
+	var tail_rotation := float(start_values[tail_rotation_path])
+
+	_add_bone_value_track(animation, near_position_path, times, [
+		near_position,
+		near_position + Vector2(-10.0, -8.0),
+		near_position + Vector2(-18.0, -3.0),
+		near_position + Vector2(-8.0, 0.0),
+		near_position,
+		near_position + Vector2(10.0, -8.0),
+		near_position + Vector2(18.0, -3.0),
+		near_position + Vector2(8.0, 0.0),
+		near_position
+	])
+	_add_bone_value_track(animation, far_position_path, times, [
+		far_position,
+		far_position + Vector2(10.0, -8.0),
+		far_position + Vector2(18.0, -3.0),
+		far_position + Vector2(8.0, 0.0),
+		far_position,
+		far_position + Vector2(-10.0, -8.0),
+		far_position + Vector2(-18.0, -3.0),
+		far_position + Vector2(-8.0, 0.0),
+		far_position
+	])
+	_add_bone_value_track(animation, near_rotation_path, times, [
+		near_rotation, near_rotation - 0.16, near_rotation - 0.34,
+		near_rotation - 0.14, near_rotation, near_rotation + 0.16,
+		near_rotation + 0.34, near_rotation + 0.14, near_rotation
+	])
+	_add_bone_value_track(animation, far_rotation_path, times, [
+		far_rotation, far_rotation + 0.16, far_rotation + 0.34,
+		far_rotation + 0.14, far_rotation, far_rotation - 0.16,
+		far_rotation - 0.34, far_rotation - 0.14, far_rotation
+	])
+
+	_add_bone_value_track(animation, body_position_path, times, [
+		body_position,
+		body_position + Vector2(0.0, -3.0),
+		body_position + Vector2(0.0, -8.0),
+		body_position + Vector2(0.0, -4.0),
+		body_position,
+		body_position + Vector2(0.0, -3.0),
+		body_position + Vector2(0.0, -8.0),
+		body_position + Vector2(0.0, -4.0),
+		body_position
+	])
+	_add_bone_value_track(animation, body_rotation_path, times, [
+		body_rotation, body_rotation - 0.006, body_rotation - 0.012,
+		body_rotation - 0.005, body_rotation, body_rotation + 0.006,
+		body_rotation + 0.012, body_rotation + 0.005, body_rotation
+	])
+	_add_bone_value_track(animation, torso_scale_path, times, [
+		torso_scale,
+		torso_scale + Vector2(0.0, 0.008),
+		torso_scale + Vector2(0.0, -0.012),
+		torso_scale + Vector2(0.0, -0.004),
+		torso_scale,
+		torso_scale + Vector2(0.0, 0.008),
+		torso_scale + Vector2(0.0, -0.012),
+		torso_scale + Vector2(0.0, -0.004),
+		torso_scale
+	])
+	_add_bone_value_track(animation, head_rotation_path, times, [
+		head_rotation, head_rotation + 0.012, head_rotation + 0.022,
+		head_rotation + 0.008, head_rotation, head_rotation - 0.012,
+		head_rotation - 0.022, head_rotation - 0.008, head_rotation
+	])
+	_add_bone_value_track(animation, wing_rotation_path, times, [
+		wing_rotation, wing_rotation + 0.018, wing_rotation + 0.032,
+		wing_rotation + 0.012, wing_rotation, wing_rotation - 0.018,
+		wing_rotation - 0.032, wing_rotation - 0.012, wing_rotation
+	])
+	_add_bone_value_track(animation, tail_rotation_path, times, [
+		tail_rotation, tail_rotation + 0.035, tail_rotation + 0.065,
+		tail_rotation + 0.025, tail_rotation, tail_rotation - 0.035,
+		tail_rotation - 0.065, tail_rotation - 0.025, tail_rotation
+	])
+	return animation
+
+
+func _start_walking() -> void:
+	if _display_mode != &"rig" or _posture_state != &"standing" or _walk_state != &"idle":
+		return
+
+	# Pause every approved idle layer in its current pose. The walk cycle's first
+	# keys are built from those exact values so starting the gait does not snap.
+	for layer_player in _rig_animation_players:
+		layer_player.pause()
+	var start_values := _get_live_posture_values()
+	_walk_animation_player.stop(true)
+	var walk_library := _walk_animation_player.get_animation_library(&"")
+	if walk_library.has_animation(&"walk_cycle"):
+		walk_library.remove_animation(&"walk_cycle")
+	var walk_error := walk_library.add_animation(&"walk_cycle", _build_walk_cycle_animation(start_values))
+	if walk_error != OK:
+		push_error("Could not create Forest Drake walk cycle.")
+		for layer_player in _rig_animation_players:
+			layer_player.play(&"idle")
+		return
+
+	_walk_state = &"walking"
+	_walk_animation_player.play(&"walk_cycle")
+	_update_status()
+
+
+func _stop_walking() -> void:
+	if _walk_state != &"walking":
+		return
+
+	var start_values := _get_live_posture_values()
+	_walk_animation_player.stop(true)
+	var standing_values := _get_standing_posture_values()
+	var return_animation := Animation.new()
+	return_animation.resource_name = "return_to_idle"
+	return_animation.length = 0.72
+	return_animation.loop_mode = Animation.LOOP_NONE
+	for property_path in standing_values.keys():
+		_add_posture_transition_track(
+			return_animation,
+			property_path,
+			start_values[property_path],
+			standing_values[property_path],
+			0.0,
+			0.72,
+			0.72
+		)
+
+	var walk_library := _walk_animation_player.get_animation_library(&"")
+	if walk_library.has_animation(&"return_to_idle"):
+		walk_library.remove_animation(&"return_to_idle")
+	var return_error := walk_library.add_animation(&"return_to_idle", return_animation)
+	if return_error != OK:
+		push_error("Could not create Forest Drake walk-to-idle transition.")
+		_reset_posture_to_standing()
+		for layer_player in _rig_animation_players:
+			layer_player.play(&"idle")
+		return
+
+	_walk_state = &"returning"
+	_walk_animation_player.play(&"return_to_idle")
+	_update_status()
+
+
+func _on_walk_animation_finished(animation_name: StringName) -> void:
+	if animation_name != &"return_to_idle" or _walk_state != &"returning":
+		return
+	_walk_state = &"idle"
+	_walk_animation_player.stop(true)
+	# The return track ends at the standing rest pose, matching every idle layer's
+	# first key. Restarting the independent loops here preserves the approved idle.
+	for layer_player in _rig_animation_players:
+		layer_player.stop()
+		layer_player.play(&"idle")
+	_update_status()
+
 
 func _get_live_posture_values() -> Dictionary:
 	return {
@@ -691,7 +887,7 @@ func _interpolate_posture_value(from_value: Variant, to_value: Variant, weight: 
 
 
 func _start_posture_transition(target_lying: bool) -> void:
-	if _display_mode != &"rig" or _posture_state == &"to_lying" or _posture_state == &"to_standing":
+	if _display_mode != &"rig" or _walk_state != &"idle" or _posture_state == &"to_lying" or _posture_state == &"to_standing":
 		return
 	if target_lying and _posture_state == &"lying":
 		return
@@ -790,6 +986,9 @@ func _on_posture_transition_finished(animation_name: StringName) -> void:
 
 
 func _reset_posture_to_standing() -> void:
+	if _walk_animation_player != null:
+		_walk_animation_player.stop(true)
+	_walk_state = &"idle"
 	if _posture_animation_player != null:
 		_posture_animation_player.stop(true)
 	if _lying_idle_player != null:
@@ -1026,7 +1225,7 @@ func _build_overlay() -> void:
 
 	var controls := Label.new()
 	controls.position = Vector2(24.0, 676.0)
-	controls.text = "L toggle STANDING / LYING | SPACE RIG / SHEET / STATIC | 4 64px | 5 80px | 6 96px | R reset standing"
+	controls.text = "W toggle WALK / STAND | L toggle STANDING / LYING | SPACE RIG / SHEET / STATIC | 4 64px | 5 80px | 6 96px | R reset"
 	controls.add_theme_font_size_override("font_size", 14)
 	controls.add_theme_color_override("font_color", Color("#f3eddc"))
 	canvas.add_child(controls)
@@ -1039,13 +1238,18 @@ func _update_status() -> void:
 	match _display_mode:
 		&"rig":
 			var posture_label := "STANDING IDLE"
-			match _posture_state:
-				&"to_lying":
-					posture_label = "LOWERING TO REST"
-				&"lying":
-					posture_label = "LYING IDLE"
-				&"to_standing":
-					posture_label = "RISING TO STAND"
+			if _walk_state == &"walking":
+				posture_label = "WALKING IN PLACE"
+			elif _walk_state == &"returning":
+				posture_label = "SETTLING BACK TO IDLE"
+			else:
+				match _posture_state:
+					&"to_lying":
+						posture_label = "LOWERING TO REST"
+					&"lying":
+						posture_label = "LYING IDLE"
+					&"to_standing":
+						posture_label = "RISING TO STAND"
 			_status_label.text = "FOREST DRAKE  •  MULTI-PART RIG  •  %s  •  %s" % [posture_label, size_text]
 		&"sheet":
 			_status_label.text = "FOREST DRAKE  •  16-FRAME SPRITE IDLE  •  0.15 SEC/FRAME  •  %s" % size_text
@@ -1119,7 +1323,14 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_set_drake_height_gcu(1.25)
 		KEY_6:
 			_set_drake_height_gcu(1.5)
+		KEY_W:
+			if _walk_state == &"idle":
+				_start_walking()
+			elif _walk_state == &"walking":
+				_stop_walking()
 		KEY_L:
+			if _walk_state != &"idle":
+				return
 			if _posture_state == &"standing":
 				_start_posture_transition(true)
 			elif _posture_state == &"lying":
