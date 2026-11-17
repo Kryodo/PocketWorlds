@@ -1,8 +1,8 @@
-# Pocket Worlds — Animation Proof V3
+# Pocket Worlds — Animation Proof V4
 
 ## Purpose
 
-An isolated review scene comparing the Forest Drake's static artwork, 16-frame sprite sheet and an experimental multi-part skeletal idle. It also displays the painterly ground/tree assets. It does not replace the main scene, gameplay, live 96x48 projection, or any approved source PNG.
+An isolated review scene comparing the Forest Drake's static artwork, 16-frame sprite sheet, approved multi-part standing idle, and an experimental stand/lie posture system. It also displays the painterly ground/tree assets. It does not replace the main scene, gameplay, live 96x48 projection, or any approved source PNG.
 
 ## Run
 
@@ -38,7 +38,8 @@ A separate, compact, low-opacity contact shadow is generated procedurally at run
 - **4:** display height 1.0 GCU (64 px).
 - **5:** display height 1.25 GCU (80 px).
 - **6:** display height 1.5 GCU (96 px).
-- **R:** restart all active rig layers, or restart the sprite-sheet animation when that comparison is selected.
+- **L:** toggle between standing and lying, including the transitions.
+- **R:** reset the rig to the approved standing idle, or restart the sprite-sheet animation when that comparison is selected.
 
 ## Transparency diagnostics
 
@@ -98,3 +99,19 @@ The hierarchy now uses a separate BodyMotionBone beneath the fixed RootAnchor. T
 The head influence region now has a broad high-weight core with a softer outer feather, reducing stretch across the face. The head idle uses gentle left/right rotation plus a very small horizontal offset, with pauses and no head scale track. Body, wing and tail animation values are otherwise unchanged.
 
 Re-test at the same display scale as V3. Confirm that the head reads as looking around and retains its shape, while the successful body/wing/tail motion remains intact. The hierarchy and weighting are still approximations on one flat image; if junction artefacts remain, the next refinement should be a separately prepared head cutout rather than increasingly complex weight maps.
+
+
+## V4 — Standing, lying down and getting up
+
+The posture experiment is layered on top of the existing rig in this isolated branch. It does not replace or edit the four approved standing-idle animations (body, head, wing and tail), and it does not add a new deformation influence to the mesh.
+
+Press **L** while the RIG view is active:
+- Standing → lying: the upper body settles first; the torso compresses toward a low resting shape; the wing folds, the tail relaxes and the head lowers last.
+- Lying idle: a slower, lower breathing cycle continues, with occasional subtle head, wing and tail adjustments.
+- Lying → standing: the head and wing recover first, followed by the torso and whole upper-body lift; the original independent standing-idle layers resume when the transition completes.
+- During either transition, the standing/lying idle layers are paused. The transition animation is built from the bones' current values, so it starts from the actual point in the idle cycle rather than snapping to its first frame.
+- Press **R** to return directly to the approved standing idle. Switching to the sprite-sheet or static comparison also resets the rig to standing.
+
+The current posture is intentionally an initial deformation-only proof using the existing single-image mesh. It tests whether the body lowering, torso compression, head placement and wing/tail settling read as a believable lie-down and get-up at the target display size. The current mesh does not have separately weighted leg joints, so this is not yet a final quadruped floor-contact solution. Inspect the feet, belly, neck and wing junction closely; do not preserve a pose that reads as a body squash or causes foot sliding. If the silhouette needs clearer limb folding, the next step should be a small set of independently prepared leg/limb cutouts or an additional articulation pass, not simply stronger scaling.
+
+Runtime visual validation is required in Godot 4.7. This branch has not been confirmed in the editor; treat the numeric pose values as test parameters, not approved final animation values.
