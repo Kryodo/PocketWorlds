@@ -373,9 +373,9 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	)
 	idle_animation.track_set_interpolation_type(scale_track, Animation.INTERPOLATION_CUBIC)
 	idle_animation.track_insert_key(scale_track, 0.0, Vector2.ONE)
-	idle_animation.track_insert_key(scale_track, 0.6, Vector2(1.012, 1.009))
-	idle_animation.track_insert_key(scale_track, 1.2, Vector2(1.035, 1.025))
-	idle_animation.track_insert_key(scale_track, 1.8, Vector2(1.012, 1.009))
+	idle_animation.track_insert_key(scale_track, 0.6, Vector2(1.06, 1.04))
+	idle_animation.track_insert_key(scale_track, 1.2, Vector2(1.16, 1.12))
+	idle_animation.track_insert_key(scale_track, 1.8, Vector2(1.06, 1.04))
 	idle_animation.track_insert_key(scale_track, 2.4, Vector2.ONE)
 
 	var rotation_track := idle_animation.add_track(Animation.TYPE_VALUE)
@@ -385,9 +385,9 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	)
 	idle_animation.track_set_interpolation_type(rotation_track, Animation.INTERPOLATION_CUBIC)
 	idle_animation.track_insert_key(rotation_track, 0.0, 0.0)
-	idle_animation.track_insert_key(rotation_track, 0.6, -0.004)
-	idle_animation.track_insert_key(rotation_track, 1.2, -0.012)
-	idle_animation.track_insert_key(rotation_track, 1.8, -0.004)
+	idle_animation.track_insert_key(rotation_track, 0.6, -0.018)
+	idle_animation.track_insert_key(rotation_track, 1.2, -0.05)
+	idle_animation.track_insert_key(rotation_track, 1.8, -0.018)
 	idle_animation.track_insert_key(rotation_track, 2.4, 0.0)
 
 	var animation_library := AnimationLibrary.new()
@@ -398,7 +398,7 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	_rig_animation_player.add_animation_library(&"", animation_library)
 	_rig_animation_player.play(&"idle")
 
-	print("[AnimationProof] Skeletal rig created: 33x33 UV grid, %d vertices, %d quads, chest weight max 0.82." % [
+	print("[AnimationProof] Skeletal rig created: 33x33 UV grid, %d vertices, %d quads, chest weight max 0.82; deliberately exaggerated breathing for visibility." % [
 		points.size(),
 		mesh_polygons.size()
 	])

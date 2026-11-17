@@ -64,3 +64,7 @@ The tree and static Drake use the same cautious uniform-corner matte cleanup in 
 ## Non-destructive boundary
 
 All changes are limited to this test scene, script and document. Existing gameplay scripts, main scene, camera controller, grid projection, save data, art definitions and uploaded PNGs are untouched.
+
+## Skeletal breathing visibility adjustment
+
+The skeletal idle was initially too subtle at the creature's in-game scale: peak chest scale was only 1.035 × 1.025 and rotation was -0.012 radians. The proof now deliberately exaggerates the peak chest scale to 1.16 × 1.12 and rotation to -0.05 radians, with intermediate easing keys. This is a diagnostic amplitude, not a final creature-animation target. First verify that the chest visibly deforms while the ground anchor remains fixed; then reduce the motion toward a natural idle.
