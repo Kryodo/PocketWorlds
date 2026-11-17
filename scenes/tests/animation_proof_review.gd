@@ -439,7 +439,7 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	_add_bone_value_track(head_animation, "Skeleton2D/RootAnchor/TorsoBone/HeadNeckBone:rotation",
 		PackedFloat64Array([0.0, 0.9, 1.55, 2.2, 3.0, 4.4, 5.15, 6.3]),
 		[0.0, 0.0, -0.075, -0.045, 0.0, 0.0, 0.045, 0.0])
-	_rig_animation_players.append(_create_rig_layer_player("HeadIdlePlayer", head_animation))
+	_create_rig_layer_player("HeadIdlePlayer", head_animation)
 
 	# Layer 3: one visible wing makes an occasional adjustment, not a constant flap.
 	var wing_animation := Animation.new()
@@ -449,7 +449,7 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	_add_bone_value_track(wing_animation, "Skeleton2D/RootAnchor/TorsoBone/WingBone:rotation",
 		PackedFloat64Array([0.0, 1.6, 2.1, 2.7, 3.5, 5.2, 5.7, 6.2, 7.8]),
 		[0.0, 0.0, -0.11, -0.075, 0.0, 0.0, 0.055, 0.0, 0.0])
-	_rig_animation_players.append(_create_rig_layer_player("WingIdlePlayer", wing_animation))
+	_create_rig_layer_player("WingIdlePlayer", wing_animation)
 
 	# Layer 4: the tail has its own slower, offset sway cycle.
 	var tail_animation := Animation.new()
@@ -459,7 +459,7 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	_add_bone_value_track(tail_animation, "Skeleton2D/RootAnchor/TorsoBone/TailBone:rotation",
 		PackedFloat64Array([0.0, 0.8, 1.5, 2.2, 3.1, 3.8, 5.1]),
 		[0.0, 0.0, -0.11, -0.05, 0.095, 0.04, 0.0])
-	_rig_animation_players.append(_create_rig_layer_player("TailIdlePlayer", tail_animation))
+	_create_rig_layer_player("TailIdlePlayer", tail_animation)
 
 	print("[AnimationProof] Multi-part rig: 49x49 grid, %d vertices, %d quads; torso/head/wing/tail weights active." % [
 		points.size(),
