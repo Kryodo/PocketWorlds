@@ -71,7 +71,7 @@ func _ready() -> void:
 	_build_drake()
 	_build_overlay()
 
-	print("ANIMATION PROOF V3 READY")
+	print("ANIMATION PROOF V4 — POSTURE TRANSITIONS READY")
 	print("Ground: 7x5 candidate grid, 128x64 GCU, 1024x512 source tiles at 0.125 scale.")
 	print("Drake idle: 16 frames, 4x4 sheet, %.1f FPS, target %.2f GCU / %.0f px." % [
 		DEFAULT_IDLE_FPS,
@@ -560,19 +560,19 @@ func _create_posture_players() -> void:
 	# adjustments. These tracks only run after the down-transition completes.
 	_add_bone_value_track(lying_animation, "Skeleton2D/RootAnchor/BodyMotionBone:position",
 		PackedFloat64Array([0.0, 1.2, 2.4, 3.6, 4.8, 6.0, 7.2]),
-		[Vector2(0.0, 22.0), Vector2(0.0, 20.0), Vector2(0.0, 22.0), Vector2(0.0, 22.0), Vector2(0.0, 20.0), Vector2(0.0, 22.0), Vector2(0.0, 22.0)])
+		[Vector2(0.0, 38.0), Vector2(0.0, 35.0), Vector2(0.0, 38.0), Vector2(0.0, 38.0), Vector2(0.0, 35.0), Vector2(0.0, 38.0), Vector2(0.0, 38.0)])
 	_add_bone_value_track(lying_animation, "Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale",
 		PackedFloat64Array([0.0, 1.2, 2.4, 3.6, 4.8, 6.0, 7.2]),
-		[Vector2(1.015, 0.86), Vector2(1.035, 0.89), Vector2(1.015, 0.86), Vector2(1.015, 0.86), Vector2(1.035, 0.89), Vector2(1.015, 0.86), Vector2(1.015, 0.86)])
+		[Vector2(1.015, 0.78), Vector2(1.035, 0.82), Vector2(1.015, 0.78), Vector2(1.015, 0.78), Vector2(1.035, 0.82), Vector2(1.015, 0.78), Vector2(1.015, 0.78)])
 	_add_bone_value_track(lying_animation, "Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation",
 		PackedFloat64Array([0.0, 2.4, 2.9, 3.5, 4.2, 7.2]),
-		[0.08, 0.08, 0.035, 0.08, 0.08, 0.08])
+		[0.10, 0.10, 0.055, 0.10, 0.10, 0.10])
 	_add_bone_value_track(lying_animation, "Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation",
 		PackedFloat64Array([0.0, 4.9, 5.3, 5.8, 7.2]),
-		[-0.14, -0.14, -0.08, -0.14, -0.14])
+		[-0.17, -0.17, -0.11, -0.17, -0.17])
 	_add_bone_value_track(lying_animation, "Skeleton2D/RootAnchor/BodyMotionBone/TailBone:rotation",
 		PackedFloat64Array([0.0, 3.5, 3.9, 4.4, 7.2]),
-		[0.06, 0.06, 0.015, 0.06, 0.06])
+		[0.08, 0.08, 0.035, 0.08, 0.08])
 
 	var lying_error := lying_library.add_animation(&"lying_idle", lying_animation)
 	if lying_error != OK:
@@ -607,13 +607,13 @@ func _get_standing_posture_values() -> Dictionary:
 
 func _get_lying_posture_values() -> Dictionary:
 	return {
-		"Skeleton2D/RootAnchor/BodyMotionBone:position": Vector2(0.0, 22.0),
-		"Skeleton2D/RootAnchor/BodyMotionBone:rotation": 0.012,
-		"Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale": Vector2(1.015, 0.86),
-		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position": _head_rest_position + Vector2(0.0, 17.0),
-		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation": 0.08,
-		"Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation": -0.14,
-		"Skeleton2D/RootAnchor/BodyMotionBone/TailBone:rotation": 0.06
+		"Skeleton2D/RootAnchor/BodyMotionBone:position": Vector2(0.0, 38.0),
+		"Skeleton2D/RootAnchor/BodyMotionBone:rotation": 0.015,
+		"Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale": Vector2(1.015, 0.78),
+		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position": _head_rest_position + Vector2(0.0, 28.0),
+		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation": 0.10,
+		"Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation": -0.17,
+		"Skeleton2D/RootAnchor/BodyMotionBone/TailBone:rotation": 0.08
 	}
 
 
@@ -625,7 +625,7 @@ func _add_posture_transition_track(animation: Animation, property_path: String, 
 	if delay > 0.001:
 		animation.track_insert_key(track_index, delay, start_value)
 
-	for step in range(1, 5):
+	for step in range(1, 4):
 		var progress := float(step) / 4.0
 		var eased_progress := progress * progress * (3.0 - 2.0 * progress)
 		var key_time := delay + duration * progress
@@ -928,7 +928,7 @@ func _build_overlay() -> void:
 
 	var title := Label.new()
 	title.position = Vector2(24.0, 16.0)
-	title.text = "POCKET WORLDS  |  ANIMATION PROOF V3"
+	title.text = "POCKET WORLDS  |  ANIMATION PROOF V4"
 	title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", Color("#f3eddc"))
 	canvas.add_child(title)
