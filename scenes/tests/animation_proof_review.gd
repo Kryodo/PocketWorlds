@@ -294,37 +294,47 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	var wing_pivot := Vector2(590.0, 510.0)
 	var tail_pivot := Vector2(690.0, 585.0)
 
+	# BodyMotionBone carries the whole upper body vertically during breathing.
+	# TorsoBone alone scales, so the head/wing/tail do not inherit torso expansion.
+	var body_motion_bone := Bone2D.new()
+	body_motion_bone.name = "BodyMotionBone"
+	body_motion_bone.position = Vector2.ZERO
+	body_motion_bone.set_autocalculate_length_and_angle(false)
+	body_motion_bone.length = 1.0
+	root_bone.add_child(body_motion_bone)
+
 	var torso_bone := Bone2D.new()
 	torso_bone.name = "TorsoBone"
 	torso_bone.position = torso_pivot - ground_anchor
 	torso_bone.set_autocalculate_length_and_angle(false)
 	torso_bone.length = 105.0
-	root_bone.add_child(torso_bone)
+	body_motion_bone.add_child(torso_bone)
 	_chest_bone = torso_bone
 
 	var head_bone := Bone2D.new()
 	head_bone.name = "HeadNeckBone"
-	head_bone.position = head_pivot - torso_pivot
+	head_bone.position = head_pivot - ground_anchor
 	head_bone.set_autocalculate_length_and_angle(false)
 	head_bone.length = 82.0
-	torso_bone.add_child(head_bone)
+	body_motion_bone.add_child(head_bone)
 
 	var wing_bone := Bone2D.new()
 	wing_bone.name = "WingBone"
-	wing_bone.position = wing_pivot - torso_pivot
+	wing_bone.position = wing_pivot - ground_anchor
 	wing_bone.set_autocalculate_length_and_angle(false)
 	wing_bone.length = 65.0
-	torso_bone.add_child(wing_bone)
+	body_motion_bone.add_child(wing_bone)
 
 	var tail_bone := Bone2D.new()
 	tail_bone.name = "TailBone"
-	tail_bone.position = tail_pivot - torso_pivot
+	tail_bone.position = tail_pivot - ground_anchor
 	tail_bone.set_autocalculate_length_and_angle(false)
 	tail_bone.length = 90.0
-	torso_bone.add_child(tail_bone)
+	body_motion_bone.add_child(tail_bone)
 
 	# Cache the default pose before animation starts.
 	root_bone.rest = root_bone.transform
+	body_motion_bone.rest = body_motion_bone.transform
 	torso_bone.rest = torso_bone.transform
 	head_bone.rest = head_bone.transform
 	wing_bone.rest = wing_bone.transform
@@ -361,7 +371,8 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 			uvs.append(source_point)
 
 			var torso_weight := _elliptical_bone_influence(source_point, torso_center, torso_radii, 0.92)
-			var head_weight := _elliptical_bone_influence(source_point, head_center, head_radii, 0.96)
+			# A broad high-weight core keeps the head volume stable; only the outer edge feathers.
+			var head_weight := _elliptical_bone_influence(source_point, head_center, head_radii, 0.96, 0.70)
 			var wing_weight := _elliptical_bone_influence(source_point, wing_center, wing_radii, 0.92)
 			var tail_weight := _elliptical_bone_influence(source_point, tail_center, tail_radii, 0.95)
 
@@ -414,31 +425,36 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 
 	_rig_animation_players.clear()
 
-	# Layer 1: whole upper body breathes and settles. Root and feet remain grounded.
+	# Layer 1: the whole upper body rises and settles, while only the torso expands.
+	# Keeping torso scale on its own child prevents the head from appearing to inflate.
 	var body_animation := Animation.new()
 	body_animation.resource_name = "body_breathing"
 	body_animation.length = 3.6
 	body_animation.loop_mode = Animation.LOOP_LINEAR
-	var torso_local := torso_pivot - ground_anchor
-	_add_bone_value_track(body_animation, "Skeleton2D/RootAnchor/TorsoBone:position",
+	_add_bone_value_track(body_animation, "Skeleton2D/RootAnchor/BodyMotionBone:position",
 		PackedFloat64Array([0.0, 0.9, 1.6, 2.4, 3.6]),
-		[torso_local, torso_local + Vector2(0.0, -5.0), torso_local + Vector2(0.0, -10.0), torso_local + Vector2(0.0, -3.0), torso_local])
-	_add_bone_value_track(body_animation, "Skeleton2D/RootAnchor/TorsoBone:scale",
+		[Vector2.ZERO, Vector2(0.0, -5.0), Vector2(0.0, -10.0), Vector2(0.0, -3.0), Vector2.ZERO])
+	_add_bone_value_track(body_animation, "Skeleton2D/RootAnchor/BodyMotionBone:rotation",
+		PackedFloat64Array([0.0, 0.9, 1.6, 2.4, 3.6]),
+		[0.0, -0.004, -0.009, -0.003, 0.0])
+	_add_bone_value_track(body_animation, "Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale",
 		PackedFloat64Array([0.0, 0.9, 1.6, 2.4, 3.6]),
 		[Vector2.ONE, Vector2(1.035, 1.05), Vector2(1.07, 1.10), Vector2(1.025, 1.025), Vector2.ONE])
-	_add_bone_value_track(body_animation, "Skeleton2D/RootAnchor/TorsoBone:rotation",
-		PackedFloat64Array([0.0, 0.9, 1.6, 2.4, 3.6]),
-		[0.0, -0.01, -0.02, -0.006, 0.0])
 	_rig_animation_player = _create_rig_layer_player("BodyBreathingPlayer", body_animation)
 
-	# Layer 2: the head pauses, looks around, then returns to a relaxed pose.
+	# Layer 2: gentle left/right looks. Rotation and a tiny horizontal shift move the
+	# head as a unit; there is deliberately no head scale track.
 	var head_animation := Animation.new()
-	head_animation.resource_name = "head_idle"
+	head_animation.resource_name = "head_look_around"
 	head_animation.length = 6.3
 	head_animation.loop_mode = Animation.LOOP_LINEAR
-	_add_bone_value_track(head_animation, "Skeleton2D/RootAnchor/TorsoBone/HeadNeckBone:rotation",
-		PackedFloat64Array([0.0, 0.9, 1.55, 2.2, 3.0, 4.4, 5.15, 6.3]),
-		[0.0, 0.0, -0.075, -0.045, 0.0, 0.0, 0.045, 0.0])
+	var head_rest_position := head_pivot - ground_anchor
+	_add_bone_value_track(head_animation, "Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation",
+		PackedFloat64Array([0.0, 0.9, 1.5, 2.15, 2.8, 3.6, 4.25, 4.9, 5.55, 6.3]),
+		[0.0, 0.0, -0.045, -0.035, 0.0, 0.0, 0.045, 0.035, 0.0, 0.0])
+	_add_bone_value_track(head_animation, "Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position",
+		PackedFloat64Array([0.0, 0.9, 1.5, 2.15, 2.8, 3.6, 4.25, 4.9, 5.55, 6.3]),
+		[head_rest_position, head_rest_position, head_rest_position + Vector2(-5.0, 0.0), head_rest_position + Vector2(-4.0, -1.0), head_rest_position, head_rest_position, head_rest_position + Vector2(5.0, 0.0), head_rest_position + Vector2(4.0, -1.0), head_rest_position, head_rest_position])
 	_create_rig_layer_player("HeadIdlePlayer", head_animation)
 
 	# Layer 3: one visible wing makes an occasional adjustment, not a constant flap.
@@ -446,7 +462,7 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	wing_animation.resource_name = "wing_settle"
 	wing_animation.length = 7.8
 	wing_animation.loop_mode = Animation.LOOP_LINEAR
-	_add_bone_value_track(wing_animation, "Skeleton2D/RootAnchor/TorsoBone/WingBone:rotation",
+	_add_bone_value_track(wing_animation, "Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation",
 		PackedFloat64Array([0.0, 1.6, 2.1, 2.7, 3.5, 5.2, 5.7, 6.2, 7.8]),
 		[0.0, 0.0, -0.11, -0.075, 0.0, 0.0, 0.055, 0.0, 0.0])
 	_create_rig_layer_player("WingIdlePlayer", wing_animation)
@@ -456,7 +472,7 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	tail_animation.resource_name = "tail_sway"
 	tail_animation.length = 5.1
 	tail_animation.loop_mode = Animation.LOOP_LINEAR
-	_add_bone_value_track(tail_animation, "Skeleton2D/RootAnchor/TorsoBone/TailBone:rotation",
+	_add_bone_value_track(tail_animation, "Skeleton2D/RootAnchor/BodyMotionBone/TailBone:rotation",
 		PackedFloat64Array([0.0, 0.8, 1.5, 2.2, 3.1, 3.8, 5.1]),
 		[0.0, 0.0, -0.11, -0.05, 0.095, 0.04, 0.0])
 	_create_rig_layer_player("TailIdlePlayer", tail_animation)
@@ -468,12 +484,12 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	print("[AnimationProof] Independent idle layers: body 3.6s, head 6.3s, wing 7.8s, tail 5.1s. The root anchor is fixed.")
 
 
-func _elliptical_bone_influence(point: Vector2, center: Vector2, radii: Vector2, maximum_weight: float) -> float:
+func _elliptical_bone_influence(point: Vector2, center: Vector2, radii: Vector2, maximum_weight: float, full_weight_core: float = 0.22) -> float:
 	var normalized_distance := Vector2(
 		(point.x - center.x) / radii.x,
 		(point.y - center.y) / radii.y
 	).length()
-	var transition := clampf((normalized_distance - 0.22) / 0.78, 0.0, 1.0)
+	var transition := clampf((normalized_distance - full_weight_core) / (1.0 - full_weight_core), 0.0, 1.0)
 	var smooth_transition := transition * transition * (3.0 - 2.0 * transition)
 	return maximum_weight * (1.0 - smooth_transition)
 

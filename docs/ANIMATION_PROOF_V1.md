@@ -85,3 +85,16 @@ The current proof remains a standing idle. It does not yet prove lying down, get
 Open `scenes/tests/animation_proof_review.tscn` with Godot 4.7 and run it with F6. The default RIG mode now shows the independent body, head, wing and tail layers together. Press Space to compare the original 16-frame sheet and static image; press R to restart the current rig layers. Use 4/5/6 to compare the three display sizes.
 
 Runtime validation is still required. Inspect both the perceived life and deformation artifacts; if one region distorts badly, adjust that region's influence field or replace it with a separate cutout layer rather than increasing the movement.
+
+
+## V3 head-look refinement
+
+Runtime feedback confirmed the body, wing and tail cycles worked well and that the overall breathing remained grounded. The first head pass looked too much like inflation rather than a deliberate look-around gesture.
+
+The likely cause was the hierarchy: HeadNeckBone, WingBone and TailBone were children of TorsoBone, while TorsoBone was being scaled for breathing. Child bones inherit their parent's transform, so the head inherited chest expansion even though the head animation itself had no scale track.
+
+The hierarchy now uses a separate BodyMotionBone beneath the fixed RootAnchor. TorsoBone, HeadNeckBone, WingBone and TailBone are siblings beneath BodyMotionBone. The shared body lift/settle is inherited by all, but the torso's breathing scale is isolated to TorsoBone and no longer scales the head/wing/tail.
+
+The head influence region now has a broad high-weight core with a softer outer feather, reducing stretch across the face. The head idle uses gentle left/right rotation plus a very small horizontal offset, with pauses and no head scale track. Body, wing and tail animation values are otherwise unchanged.
+
+Re-test at the same display scale as V3. Confirm that the head reads as looking around and retains its shape, while the successful body/wing/tail motion remains intact. The hierarchy and weighting are still approximations on one flat image; if junction artefacts remain, the next refinement should be a separately prepared head cutout rather than increasingly complex weight maps.
