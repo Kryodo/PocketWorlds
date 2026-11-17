@@ -32,13 +32,17 @@ var _ground_root: Node2D
 var _sorted_world: Node2D
 var _animated_drake: AnimatedSprite2D
 var _static_drake: Sprite2D
+var _rigged_drake: Node2D
+var _rig_animation_player: AnimationPlayer
+var _chest_bone: Bone2D
 var _drake_shadow: Sprite2D
 var _status_label: Label
 var _current_fps := DEFAULT_IDLE_FPS
 var _drake_height_gcu := DEFAULT_DRAKE_HEIGHT_GCU
-var _show_animation := true
+var _display_mode: StringName = &"rig"
 var _animated_drake_source_height := 240.0
 var _static_drake_source_height := 675.0
+var _rigged_drake_source_height := 675.0
 
 
 func _ready() -> void:
@@ -66,7 +70,7 @@ func _ready() -> void:
 		_drake_height_gcu,
 		_drake_height_gcu * CELL_SIZE.y
 	])
-	print("Controls: SPACE static/idle | 4=1.0 GCU 5=1.25 GCU 6=1.5 GCU | R=restart")
+	print("Controls: SPACE cycle RIG/SHEET/STATIC | 4=1.0 GCU 5=1.25 GCU 6=1.5 GCU | R=restart")
 
 
 func _draw() -> void:
@@ -246,12 +250,162 @@ func _build_drake() -> void:
 		_static_drake.z_index = 2
 		_static_drake.visible = false
 		_sorted_world.add_child(_static_drake)
+		_rigged_drake_source_height = float(static_bounds.size.y)
+		_build_drake_rig(static_image, static_bounds)
 
 	_apply_drake_scale()
+	_set_display_mode(&"rig")
 	_animated_drake.play(&"idle")
 
 	print("Drake idle: %d frames, %dx%d grid, frame size %dx%d, %.1f FPS." % [
 		FRAME_COUNT, FRAME_COLUMNS, FRAME_ROWS, FRAME_SIZE.x, FRAME_SIZE.y, DEFAULT_IDLE_FPS
+	])
+
+
+func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
+	var image_width := character_image.get_width()
+	var image_height := character_image.get_height()
+	var ground_anchor := Vector2(
+		float(visible_bounds.position.x) + float(visible_bounds.size.x) * 0.5,
+		float(visible_bounds.position.y + visible_bounds.size.y)
+	)
+
+	_rigged_drake = Node2D.new()
+	_rigged_drake.name = "ForestDrake_SkeletalRig"
+	_rigged_drake.position = _cell_center(DRAKE_CELL)
+	_rigged_drake.z_index = 2
+	_sorted_world.add_child(_rigged_drake)
+
+	var skeleton := Skeleton2D.new()
+	skeleton.name = "Skeleton2D"
+	_rigged_drake.add_child(skeleton)
+
+	var root_bone := Bone2D.new()
+	root_bone.name = "RootAnchor"
+	root_bone.position = Vector2.ZERO
+	root_bone.set_autocalculate_length_and_angle(false)
+	root_bone.length = 90.0
+	skeleton.add_child(root_bone)
+
+	_chest_bone = Bone2D.new()
+	_chest_bone.name = "ChestBone"
+	_chest_bone.position = Vector2(520.0, 565.0) - ground_anchor
+	_chest_bone.set_autocalculate_length_and_angle(false)
+	_chest_bone.length = 65.0
+	root_bone.add_child(_chest_bone)
+
+	# Store the exact default pose before applying any animation.
+	root_bone.rest = root_bone.transform
+	_chest_bone.rest = _chest_bone.transform
+
+	# A regular UV grid gives the chest enough internal vertices to deform smoothly.
+	const GRID_COLUMNS := 33
+	const GRID_ROWS := 33
+	var points := PackedVector2Array()
+	var uvs := PackedVector2Array()
+	var root_weights := PackedFloat32Array()
+	var chest_weights := PackedFloat32Array()
+	var mesh_polygons: Array = []
+
+	var chest_center := Vector2(520.0, 565.0)
+	var chest_radii := Vector2(190.0, 145.0)
+
+	for row in range(GRID_ROWS):
+		for column in range(GRID_COLUMNS):
+			var source_point := Vector2(
+				float(column) * float(image_width) / float(GRID_COLUMNS - 1),
+				float(row) * float(image_height) / float(GRID_ROWS - 1)
+			)
+			points.append(source_point - ground_anchor)
+			uvs.append(source_point)
+
+			var normalized_distance := Vector2(
+				(source_point.x - chest_center.x) / chest_radii.x,
+				(source_point.y - chest_center.y) / chest_radii.y
+			).length()
+			var transition := clampf((normalized_distance - 0.30) / 0.70, 0.0, 1.0)
+			var smooth_transition := transition * transition * (3.0 - 2.0 * transition)
+			var chest_weight := 0.82 * (1.0 - smooth_transition)
+			chest_weights.append(chest_weight)
+			root_weights.append(1.0 - chest_weight)
+
+	for row in range(GRID_ROWS - 1):
+		for column in range(GRID_COLUMNS - 1):
+			var top_left := row * GRID_COLUMNS + column
+			var top_right := top_left + 1
+			var bottom_left := top_left + GRID_COLUMNS
+			var bottom_right := bottom_left + 1
+			mesh_polygons.append(PackedInt32Array([
+				top_left,
+				top_right,
+				bottom_right,
+				bottom_left
+			]))
+
+	var character_mesh := Polygon2D.new()
+	character_mesh.name = "TexturedDeformMesh"
+	character_mesh.texture = ImageTexture.create_from_image(character_image)
+	character_mesh.polygon = points
+	character_mesh.uv = uvs
+	character_mesh.polygons = mesh_polygons
+	character_mesh.color = Color.WHITE
+	character_mesh.antialiased = true
+	character_mesh.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_rigged_drake.add_child(character_mesh)
+
+	character_mesh.skeleton = character_mesh.get_path_to(skeleton)
+	character_mesh.add_bone(character_mesh.get_path_to(root_bone), root_weights)
+	character_mesh.add_bone(character_mesh.get_path_to(_chest_bone), chest_weights)
+
+	_rig_animation_player = AnimationPlayer.new()
+	_rig_animation_player.name = "RigAnimationPlayer"
+	_rig_animation_player.root_node = NodePath("..")
+	_rigged_drake.add_child(_rig_animation_player)
+
+	var idle_animation := Animation.new()
+	idle_animation.resource_name = "idle"
+	idle_animation.length = 2.4
+	idle_animation.loop_mode = Animation.LOOP_LINEAR
+
+	var scale_track := idle_animation.add_track(Animation.TYPE_VALUE)
+	idle_animation.track_set_path(
+		scale_track,
+		NodePath("Skeleton2D/RootAnchor/ChestBone:scale")
+	)
+	idle_animation.track_set_interpolation_type(scale_track, Animation.INTERPOLATION_CUBIC)
+	idle_animation.track_insert_key(scale_track, 0.0, Vector2.ONE)
+	idle_animation.track_insert_key(scale_track, 0.6, Vector2(1.012, 1.009))
+	idle_animation.track_insert_key(scale_track, 1.2, Vector2(1.035, 1.025))
+	idle_animation.track_insert_key(scale_track, 1.8, Vector2(1.012, 1.009))
+	idle_animation.track_insert_key(scale_track, 2.4, Vector2.ONE)
+
+	var rotation_track := idle_animation.add_track(Animation.TYPE_VALUE)
+	idle_animation.track_set_path(
+		rotation_track,
+		NodePath("Skeleton2D/RootAnchor/ChestBone:rotation")
+	)
+	idle_animation.track_set_interpolation_type(rotation_track, Animation.INTERPOLATION_CUBIC)
+	idle_animation.track_insert_key(rotation_track, 0.0, 0.0)
+	idle_animation.track_insert_key(rotation_track, 0.6, -0.004)
+	idle_animation.track_insert_key(rotation_track, 1.2, -0.012)
+	idle_animation.track_insert_key(rotation_track, 1.8, -0.004)
+	idle_animation.track_insert_key(rotation_track, 2.4, 0.0)
+
+	var animation_library := AnimationLibrary.new()
+	var library_error := animation_library.add_animation(&"idle", idle_animation)
+	if library_error != OK:
+		push_error("Could not register Forest Drake skeletal idle animation.")
+		return
+	_rig_animation_player.add_animation_library(&"", animation_library)
+	_rig_animation_player.play(&"idle")
+
+	print("[AnimationProof] Skeletal rig created: 33x33 UV grid, %d vertices, %d quads, chest weight max 0.82." % [
+		points.size(),
+		mesh_polygons.size()
+	])
+	print("[AnimationProof] Fixed root anchor at source image %s; chest pivot at %s." % [
+		str(ground_anchor),
+		str(chest_center)
 	])
 
 
@@ -274,6 +428,9 @@ func _apply_drake_scale() -> void:
 	if _animated_drake != null:
 		var scale_value := target_height_px / maxf(_animated_drake_source_height, 1.0)
 		_animated_drake.scale = Vector2.ONE * scale_value
+	if _rigged_drake != null:
+		var rig_scale := target_height_px / maxf(_rigged_drake_source_height, 1.0)
+		_rigged_drake.scale = Vector2.ONE * rig_scale
 	if _static_drake != null:
 		var static_scale := target_height_px / maxf(_static_drake_source_height, 1.0)
 		_static_drake.scale = Vector2.ONE * static_scale
@@ -444,7 +601,7 @@ func _build_overlay() -> void:
 
 	var controls := Label.new()
 	controls.position = Vector2(24.0, 676.0)
-	controls.text = "SPACE static/idle | 4 64px | 5 80px | 6 96px | R restart | 0.15 sec/frame"
+	controls.text = "SPACE cycle RIG / SHEET / STATIC | 4 64px | 5 80px | 6 96px | R restart"
 	controls.add_theme_font_size_override("font_size", 14)
 	controls.add_theme_color_override("font_color", Color("#f3eddc"))
 	canvas.add_child(controls)
@@ -454,10 +611,13 @@ func _update_status() -> void:
 	if _status_label == null:
 		return
 	var size_text := "%.2f GCU / %.0f px" % [_drake_height_gcu, _drake_height_gcu * CELL_SIZE.y]
-	if _show_animation:
-		_status_label.text = "FOREST DRAKE  •  16-FRAME IDLE  •  0.15 SEC/FRAME  •  %s" % size_text
-	else:
-		_status_label.text = "FOREST DRAKE  •  STATIC REFERENCE  •  %s" % size_text
+	match _display_mode:
+		&"rig":
+			_status_label.text = "FOREST DRAKE  •  SKELETAL IDLE  •  FIXED ROOT / CHEST DEFORMATION  •  %s" % size_text
+		&"sheet":
+			_status_label.text = "FOREST DRAKE  •  16-FRAME SPRITE IDLE  •  0.15 SEC/FRAME  •  %s" % size_text
+		_:
+			_status_label.text = "FOREST DRAKE  •  STATIC REFERENCE  •  %s" % size_text
 
 
 func _set_drake_height_gcu(next_height: float) -> void:
@@ -466,17 +626,44 @@ func _set_drake_height_gcu(next_height: float) -> void:
 	_update_status()
 
 
-func _toggle_static_animation() -> void:
-	_show_animation = not _show_animation
+func _set_display_mode(next_mode: StringName) -> void:
+	_display_mode = next_mode
+	if _rigged_drake != null:
+		_rigged_drake.visible = _display_mode == &"rig"
 	if _animated_drake != null:
-		_animated_drake.visible = _show_animation
-		if _show_animation:
+		_animated_drake.visible = _display_mode == &"sheet"
+		if _display_mode == &"sheet":
 			_animated_drake.play(&"idle")
 		else:
 			_animated_drake.stop()
 	if _static_drake != null:
-		_static_drake.visible = not _show_animation
+		_static_drake.visible = _display_mode == &"static"
+	if _rig_animation_player != null:
+		if _display_mode == &"rig":
+			_rig_animation_player.play(&"idle")
+		else:
+			_rig_animation_player.stop()
 	_update_status()
+
+
+func _cycle_display_mode() -> void:
+	match _display_mode:
+		&"rig":
+			_set_display_mode(&"sheet")
+		&"sheet":
+			_set_display_mode(&"static")
+		_:
+			_set_display_mode(&"rig")
+
+
+func _restart_current_animation() -> void:
+	match _display_mode:
+		&"rig":
+			if _rig_animation_player != null:
+				_rig_animation_player.play(&"idle")
+		&"sheet":
+			if _animated_drake != null:
+				_animated_drake.play(&"idle")
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -488,7 +675,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 	match key_event.keycode:
 		KEY_SPACE:
-			_toggle_static_animation()
+			_cycle_display_mode()
 		KEY_4:
 			_set_drake_height_gcu(1.0)
 		KEY_5:
@@ -496,5 +683,4 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_6:
 			_set_drake_height_gcu(1.5)
 		KEY_R:
-			if _animated_drake != null:
-				_animated_drake.play(&"idle")
+			_restart_current_animation()

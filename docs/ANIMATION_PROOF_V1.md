@@ -20,7 +20,16 @@ The ground board is 7x5 cells using the isolated candidate Ground Cell Unit of 1
 
 The tree is initially fitted to 4.2 GCU of visible height. The Forest Drake defaults to 1.25 GCU (80 world pixels) and can be adjusted at runtime for comparison. These are review values, not final asset-definition or collision footprints.
 
-## Drake animation sheet
+## Forest Drake skeletal idle
+
+The approved static Drake is also rendered as a single textured `Polygon2D` mesh bound to a `Skeleton2D`. The mesh uses a 33x33 UV grid (1,089 vertices / 1,024 quad cells) with two weighted bones:
+
+- `RootAnchor`: fixed at the character's ground-contact point; most vertices are fully influenced by it.
+- `ChestBone`: a soft radial weight field around the upper chest, with a maximum influence of 0.82. It animates only a small scale expansion and rotation over a 2.4-second looping `AnimationPlayer` clip.
+
+This is an initial deformation proof, not a final production rig. The chest weight region and animation amplitude may need adjustment after visual inspection. The original source PNG is read and matte-cleaned in memory; it is not modified.
+
+## Drake sprite-sheet comparison
 
 The 1024x1024 idle sheet is sliced as 16 frames in a 4x4 grid. Each frame is 256x256 pixels and is loaded into a runtime SpriteFrames resource in reading order, left-to-right and top-to-bottom.
 
@@ -30,11 +39,11 @@ A separate, compact, low-opacity contact shadow is generated procedurally at run
 
 ### Controls
 
-- **Space:** toggle between static reference and animated idle.
+- **Space:** cycle between skeletal idle, 16-frame sprite idle and static reference.
 - **4:** display height 1.0 GCU (64 px).
 - **5:** display height 1.25 GCU (80 px).
 - **6:** display height 1.5 GCU (96 px).
-- **R:** restart the idle loop.
+- **R:** restart the currently selected animation.
 
 ## Transparency diagnostics
 
@@ -49,7 +58,7 @@ The tree and static Drake use the same cautious uniform-corner matte cleanup in 
 - Background: neutral deep green for transparency and edge inspection.
 - Ground: 7x5 candidate 128x64 diamond grid, centred in the 1280x720 review viewport.
 - Tree: rear-left of the ground patch.
-- Drake: front-right, with static/animated toggle and separate fixed shadow.
+- Drake: front-right, with skeletal/sprite/static comparison and separate fixed shadow.
 - Ground tiles render below the object layer. The tree, shadow and Drake are Y-sorted as world objects.
 
 ## Non-destructive boundary
