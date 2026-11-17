@@ -1,4 +1,4 @@
-# Pocket Worlds — Animation Proof V4
+# Pocket Worlds — Animation Proof V5
 
 ## Purpose
 
@@ -115,3 +115,21 @@ Press **L** while the RIG view is active:
 The current posture is intentionally an initial deformation-only proof using the existing single-image mesh. It tests whether the body lowering, torso compression, head placement and wing/tail settling read as a believable lie-down and get-up at the target display size. The current mesh does not have separately weighted leg joints, so this is not yet a final quadruped floor-contact solution. Inspect the feet, belly, neck and wing junction closely; do not preserve a pose that reads as a body squash or causes foot sliding. If the silhouette needs clearer limb folding, the next step should be a small set of independently prepared leg/limb cutouts or an additional articulation pass, not simply stronger scaling.
 
 Runtime visual validation is required in Godot 4.7. This branch has not been confirmed in the editor; treat the numeric pose values as test parameters, not approved final animation values.
+
+
+## V5 — Lying silhouette, foreleg reach and contact shadow
+
+This iteration responds to the first in-engine posture review:
+
+- The resting silhouette now lowers the upper-body group farther toward the ground and compresses the torso more, so it should read less like a crouch/duck.
+- Two additional, independently weighted foreleg influences were added to the same 49x49 mesh. They are anchored to the fixed root rather than the descending torso. During lie-down they move slightly forward and rotate inward by about 4.3 degrees in opposite directions; during get-up they retract before the chest rises.
+- The foreleg influence centres and pivots are estimated from the source image, not hand-authored limb cutouts. They are a deliberately small test adjustment and need visual inspection for mesh stretching or incorrect influence placement.
+- The contact shadow is now a soft 128x64 projected oval with roughly the same 2:1 screen-space proportion as the isometric ground diamond. Its previous 96x20 texture and 0.18 maximum alpha produced a narrow, faint strip. The revised shadow is wider, deeper, darker and linearly filtered.
+
+### Transition continuity fix
+
+The earlier transition code called `stop()` on the active idle players and the previous posture-transition player before sampling the current bones. Godot's `AnimationPlayer.stop()` defaults to `keep_state = false`, so stopping the previously completed posture transition could re-evaluate its first pose. This was especially visible when getting up.
+
+The transition now pauses the active idle layers, samples their still-visible transforms, and calls `stop(true)` on the previous transition player so its visual state is not reset. At the end of get-up, the standing idle layers are deliberately restarted at their first keys, which match the standing rest pose.
+
+Runtime validation is still required in Godot 4.7. Check especially the foreleg pivots/weights, whether the chest now sits low enough, and whether the larger isometric shadow reads naturally rather than as a dark oval.
