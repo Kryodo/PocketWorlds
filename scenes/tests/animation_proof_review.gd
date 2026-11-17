@@ -24,7 +24,8 @@ const FRAME_COLUMNS := 4
 const FRAME_ROWS := 4
 const FRAME_COUNT := 16
 const FRAME_SIZE := Vector2i(256, 256)
-const DEFAULT_IDLE_FPS := 8.0
+const FRAME_DURATION_SECONDS := 0.15
+const DEFAULT_IDLE_FPS := 1.0 / FRAME_DURATION_SECONDS
 const FALLBACK_FRAME_BOUNDS := Rect2i(Vector2i(12, 8), Vector2i(232, 240))
 
 var _ground_root: Node2D
@@ -65,7 +66,7 @@ func _ready() -> void:
 		_drake_height_gcu,
 		_drake_height_gcu * CELL_SIZE.y
 	])
-	print("Controls: SPACE static/idle | 1=6 FPS 2=8 FPS 3=12 FPS | 4=1.0 GCU 5=1.25 GCU 6=1.5 GCU | R=restart")
+	print("Controls: SPACE static/idle | 4=1.0 GCU 5=1.25 GCU 6=1.5 GCU | R=restart")
 
 
 func _draw() -> void:
@@ -218,8 +219,8 @@ func _build_drake() -> void:
 	_drake_shadow.name = "ForestDrake_ContactShadow"
 	_drake_shadow.texture = _create_contact_shadow_texture()
 	_drake_shadow.centered = true
-	_drake_shadow.position = _cell_center(DRAKE_CELL) + Vector2(0.0, 3.0)
-	_drake_shadow.scale = Vector2(0.78, 0.68)
+	_drake_shadow.position = _cell_center(DRAKE_CELL) + Vector2(0.0, -2.0)
+	_drake_shadow.scale = Vector2(0.55, 0.32)
 	_drake_shadow.z_index = 1
 	_sorted_world.add_child(_drake_shadow)
 
@@ -255,15 +256,15 @@ func _build_drake() -> void:
 
 
 func _create_contact_shadow_texture() -> Texture2D:
-	var image := Image.create(128, 40, false, Image.FORMAT_RGBA8)
-	var center := Vector2(63.5, 19.5)
+	var image := Image.create(96, 20, false, Image.FORMAT_RGBA8)
+	var center := Vector2(47.5, 9.5)
 	for y in range(image.get_height()):
 		for x in range(image.get_width()):
-			var dx := (float(x) - center.x) / 59.0
-			var dy := (float(y) - center.y) / 16.0
+			var dx := (float(x) - center.x) / 45.0
+			var dy := (float(y) - center.y) / 8.0
 			var distance_squared := dx * dx + dy * dy
 			var falloff := clampf(1.0 - distance_squared, 0.0, 1.0)
-			var alpha := 0.26 * falloff * falloff
+			var alpha := 0.18 * falloff * falloff
 			image.set_pixel(x, y, Color(0.075, 0.105, 0.075, alpha))
 	return ImageTexture.create_from_image(image)
 
@@ -443,7 +444,7 @@ func _build_overlay() -> void:
 
 	var controls := Label.new()
 	controls.position = Vector2(24.0, 676.0)
-	controls.text = "SPACE static/idle | 1 6 FPS | 2 8 FPS | 3 12 FPS | 4 64px | 5 80px | 6 96px | R restart"
+	controls.text = "SPACE static/idle | 4 64px | 5 80px | 6 96px | R restart | 0.15 sec/frame"
 	controls.add_theme_font_size_override("font_size", 14)
 	controls.add_theme_color_override("font_color", Color("#f3eddc"))
 	canvas.add_child(controls)
@@ -454,17 +455,9 @@ func _update_status() -> void:
 		return
 	var size_text := "%.2f GCU / %.0f px" % [_drake_height_gcu, _drake_height_gcu * CELL_SIZE.y]
 	if _show_animation:
-		_status_label.text = "FOREST DRAKE  •  16-FRAME IDLE  •  %.1f FPS  •  %s" % [_current_fps, size_text]
+		_status_label.text = "FOREST DRAKE  •  16-FRAME IDLE  •  0.15 SEC/FRAME  •  %s" % size_text
 	else:
 		_status_label.text = "FOREST DRAKE  •  STATIC REFERENCE  •  %s" % size_text
-
-
-func _set_idle_speed(next_fps: float) -> void:
-	_current_fps = next_fps
-	if _animated_drake != null and _animated_drake.sprite_frames != null:
-		_animated_drake.sprite_frames.set_animation_speed(&"idle", _current_fps)
-		_animated_drake.play(&"idle")
-	_update_status()
 
 
 func _set_drake_height_gcu(next_height: float) -> void:
@@ -496,12 +489,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	match key_event.keycode:
 		KEY_SPACE:
 			_toggle_static_animation()
-		KEY_1:
-			_set_idle_speed(6.0)
-		KEY_2:
-			_set_idle_speed(8.0)
-		KEY_3:
-			_set_idle_speed(12.0)
 		KEY_4:
 			_set_drake_height_gcu(1.0)
 		KEY_5:

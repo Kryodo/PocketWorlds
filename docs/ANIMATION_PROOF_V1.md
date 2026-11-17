@@ -24,16 +24,13 @@ The tree is initially fitted to 4.2 GCU of visible height. The Forest Drake defa
 
 The 1024x1024 idle sheet is sliced as 16 frames in a 4x4 grid. Each frame is 256x256 pixels and is loaded into a runtime SpriteFrames resource in reading order, left-to-right and top-to-bottom.
 
-Default playback is 8 FPS (a 2-second 16-frame cycle). The static Drake is placed at the same ground anchor and display height for direct comparison.
+Default playback is one frame every 0.15 seconds (approximately 6.67 FPS; a 2.4-second 16-frame cycle). The static Drake is placed at the same ground anchor and display height for direct comparison.
 
-A separate soft contact shadow is generated procedurally at runtime and remains stationary beneath the creature. It is not baked into the animation frames.
+A separate, compact, low-opacity contact shadow is generated procedurally at runtime. Its centre is placed at the creature's ground-contact anchor with a slight upward offset, and it remains stationary beneath the feet. It is not baked into the animation frames.
 
 ### Controls
 
 - **Space:** toggle between static reference and animated idle.
-- **1:** 6 FPS.
-- **2:** 8 FPS.
-- **3:** 12 FPS.
 - **4:** display height 1.0 GCU (64 px).
 - **5:** display height 1.25 GCU (80 px).
 - **6:** display height 1.5 GCU (96 px).
