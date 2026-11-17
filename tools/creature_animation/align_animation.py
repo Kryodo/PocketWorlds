@@ -178,6 +178,11 @@ def create_preview(frames, config, output_path: Path, columns: int):
     draw = ImageDraw.Draw(canvas)
 
     pivot_x, pivot_y = config["target_pivot_px"]
+    shadow_offset = config["source_contact_shadow_offset_px"]
+    source_w = config["source_canvas_px"][0]
+    scale = frame_size / source_w
+    shadow_x = pivot_x + shadow_offset[0] * scale
+    shadow_y = pivot_y + shadow_offset[1] * scale
     for index, frame in enumerate(frames):
         col, row = index % columns, index // columns
         x = pad + col * (frame_size + pad)
@@ -192,7 +197,8 @@ def create_preview(frames, config, output_path: Path, columns: int):
         canvas.paste(checker, (x, y))
 
         px, py = x + pivot_x, y + pivot_y
-        draw.ellipse((px-56, py-28, px+56, py+28), outline="#43d2ac", width=2)
+        sx, sy = x + shadow_x, y + shadow_y
+        draw.ellipse((sx-56, sy-28, sx+56, sy+28), outline="#43d2ac", width=2)
         draw.line((px-10, py, px+10, py), fill="#ff5858", width=2)
         draw.line((px, py-10, px, py+10), fill="#ff5858", width=2)
         draw.text((x+4, y+frame_size+4), f"FRAME {index:02d}", fill="#f1ead9")
