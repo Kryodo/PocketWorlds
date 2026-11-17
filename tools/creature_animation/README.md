@@ -82,11 +82,11 @@ The T8 node names in this project are the installed Qwen Image 2.1 UNION nodes: 
 ### Prompt for the 4x4 sheet
 
 ~~~text
-Create one clean 4-by-4 sprite sheet showing sixteen consecutive frames of the exact same small forest dragon walking slowly in place.
+Create one clean 4-by-4 sprite sheet showing sixteen consecutive frames of the Forest Drake walking slowly in place.
 
-Use the supplied pose guide to determine the leg positions and their order in every cell. Each cell contains one complete creature pose. Keep the creature at the same scale, facing direction, three-quarter camera angle, body proportions, head shape, horn shape, wing shape, tail shape, colour palette and painterly rendering as the approved reference. Keep the torso and head position registered consistently between cells; the feet are the parts that move through the walking cycle. Use four distinct legs with a natural staggered quadruped walk, not a two-legged human gait. Show clear planted-foot and lifted-foot phases with readable paw silhouettes and all toes/claws intact.
+Use the supplied pose guide to determine the four leg positions and their order in every cell. Each cell contains one complete creature pose. Preserve the approved reference artwork; do not redesign or reinterpret the creature. Keep the torso/head registration consistent between cells while the legs move through a natural staggered quadruped walk. Show clear planted-foot and lifted-foot phases with readable paw silhouettes and all toes/claws intact.
 
-Keep every frame completely inside its own equal-sized cell. Use the same character scale and the same ground-contact reference position in every cell. Do not add cell borders, labels, numbers, text, floor scenery, rocks, grass, props, a cast shadow, motion trails or decorative effects. Use a perfectly uniform saturated magenta background (#D632E8) in every cell for later alpha extraction. The background must be flat and identical from corner to corner.
+Keep every frame completely inside its own equal-sized cell and at the same scale. Do not add cell borders, labels, numbers, text, scenery, props, a cast shadow, motion trails or decorative effects. Use a perfectly uniform saturated magenta background (#D632E8) in every cell for later alpha extraction.
 ~~~
 
 The prompt deliberately describes only the frame layout, pose, registration and matte requirements; the reference image already supplies the approved art style and character design.
