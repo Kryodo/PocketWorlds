@@ -40,6 +40,10 @@ var _body_motion_bone: Bone2D
 var _head_bone: Bone2D
 var _wing_bone: Bone2D
 var _tail_bone: Bone2D
+var _front_leg_near_bone: Bone2D
+var _front_leg_far_bone: Bone2D
+var _front_leg_near_rest_position := Vector2.ZERO
+var _front_leg_far_rest_position := Vector2.ZERO
 var _head_rest_position := Vector2.ZERO
 var _posture_animation_player: AnimationPlayer
 var _lying_idle_player: AnimationPlayer
@@ -232,7 +236,8 @@ func _build_drake() -> void:
 	_drake_shadow.texture = _create_contact_shadow_texture()
 	_drake_shadow.centered = true
 	_drake_shadow.position = _cell_center(DRAKE_CELL) + Vector2(0.0, -2.0)
-	_drake_shadow.scale = Vector2(0.55, 0.32)
+	# 128x64 isometric footprint: broad enough to read around the feet at game scale.
+	_drake_shadow.scale = Vector2(0.80, 0.68)
 	_drake_shadow.z_index = 1
 	_sorted_world.add_child(_drake_shadow)
 
@@ -345,6 +350,26 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	body_motion_bone.add_child(tail_bone)
 	_tail_bone = tail_bone
 
+	# The forelegs remain attached to the fixed ground-root rather than the
+	# descending torso, so they can reach forward and stay grounded as the chest lowers.
+	var front_leg_near_bone := Bone2D.new()
+	front_leg_near_bone.name = "FrontLegNearBone"
+	front_leg_near_bone.position = Vector2(430.0, 670.0) - ground_anchor
+	front_leg_near_bone.set_autocalculate_length_and_angle(false)
+	front_leg_near_bone.length = 72.0
+	root_bone.add_child(front_leg_near_bone)
+	_front_leg_near_bone = front_leg_near_bone
+	_front_leg_near_rest_position = front_leg_near_bone.position
+
+	var front_leg_far_bone := Bone2D.new()
+	front_leg_far_bone.name = "FrontLegFarBone"
+	front_leg_far_bone.position = Vector2(555.0, 675.0) - ground_anchor
+	front_leg_far_bone.set_autocalculate_length_and_angle(false)
+	front_leg_far_bone.length = 72.0
+	root_bone.add_child(front_leg_far_bone)
+	_front_leg_far_bone = front_leg_far_bone
+	_front_leg_far_rest_position = front_leg_far_bone.position
+
 	# Cache the default pose before animation starts.
 	root_bone.rest = root_bone.transform
 	body_motion_bone.rest = body_motion_bone.transform
@@ -352,6 +377,8 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	head_bone.rest = head_bone.transform
 	wing_bone.rest = wing_bone.transform
 	tail_bone.rest = tail_bone.transform
+	front_leg_near_bone.rest = front_leg_near_bone.transform
+	front_leg_far_bone.rest = front_leg_far_bone.transform
 
 	# A denser grid gives the narrow tail and wing membrane more vertices to bend.
 	const GRID_COLUMNS := 49
@@ -363,6 +390,8 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	var head_weights := PackedFloat32Array()
 	var wing_weights := PackedFloat32Array()
 	var tail_weights := PackedFloat32Array()
+	var front_leg_near_weights := PackedFloat32Array()
+	var front_leg_far_weights := PackedFloat32Array()
 	var mesh_polygons: Array = []
 
 	var torso_center := Vector2(520.0, 620.0)
@@ -373,6 +402,11 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	var wing_radii := Vector2(165.0, 135.0)
 	var tail_center := Vector2(790.0, 650.0)
 	var tail_radii := Vector2(155.0, 140.0)
+	# Approximate source-image regions for the two visible forelegs. Keep these
+	# influences tight so the new reach does not drag the belly or shoulder.
+	var front_leg_near_center := Vector2(410.0, 760.0)
+	var front_leg_far_center := Vector2(545.0, 760.0)
+	var front_leg_radii := Vector2(92.0, 86.0)
 
 	for row in range(GRID_ROWS):
 		for column in range(GRID_COLUMNS):
@@ -388,15 +422,19 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 			var head_weight := _elliptical_bone_influence(source_point, head_center, head_radii, 0.96, 0.70)
 			var wing_weight := _elliptical_bone_influence(source_point, wing_center, wing_radii, 0.92)
 			var tail_weight := _elliptical_bone_influence(source_point, tail_center, tail_radii, 0.95)
+			var front_leg_near_weight := _elliptical_bone_influence(source_point, front_leg_near_center, front_leg_radii, 0.96, 0.34)
+			var front_leg_far_weight := _elliptical_bone_influence(source_point, front_leg_far_center, front_leg_radii, 0.96, 0.34)
 
 			# Leave a small root influence everywhere, and normalize overlaps so weights sum to one.
-			var total_weight := torso_weight + head_weight + wing_weight + tail_weight
+			var total_weight := torso_weight + head_weight + wing_weight + tail_weight + front_leg_near_weight + front_leg_far_weight
 			if total_weight > 0.94:
 				var normalization := 0.94 / total_weight
 				torso_weight *= normalization
 				head_weight *= normalization
 				wing_weight *= normalization
 				tail_weight *= normalization
+				front_leg_near_weight *= normalization
+				front_leg_far_weight *= normalization
 				total_weight = 0.94
 
 			root_weights.append(1.0 - total_weight)
@@ -404,6 +442,8 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 			head_weights.append(head_weight)
 			wing_weights.append(wing_weight)
 			tail_weights.append(tail_weight)
+			front_leg_near_weights.append(front_leg_near_weight)
+			front_leg_far_weights.append(front_leg_far_weight)
 
 	for row in range(GRID_ROWS - 1):
 		for column in range(GRID_COLUMNS - 1):
@@ -435,6 +475,8 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	character_mesh.add_bone(character_mesh.get_path_to(head_bone), head_weights)
 	character_mesh.add_bone(character_mesh.get_path_to(wing_bone), wing_weights)
 	character_mesh.add_bone(character_mesh.get_path_to(tail_bone), tail_weights)
+	character_mesh.add_bone(character_mesh.get_path_to(front_leg_near_bone), front_leg_near_weights)
+	character_mesh.add_bone(character_mesh.get_path_to(front_leg_far_bone), front_leg_far_weights)
 
 	_rig_animation_players.clear()
 
@@ -560,10 +602,10 @@ func _create_posture_players() -> void:
 	# adjustments. These tracks only run after the down-transition completes.
 	_add_bone_value_track(lying_animation, "Skeleton2D/RootAnchor/BodyMotionBone:position",
 		PackedFloat64Array([0.0, 1.2, 2.4, 3.6, 4.8, 6.0, 7.2]),
-		[Vector2(0.0, 38.0), Vector2(0.0, 35.0), Vector2(0.0, 38.0), Vector2(0.0, 38.0), Vector2(0.0, 35.0), Vector2(0.0, 38.0), Vector2(0.0, 38.0)])
+		[Vector2(0.0, 52.0), Vector2(0.0, 49.0), Vector2(0.0, 52.0), Vector2(0.0, 52.0), Vector2(0.0, 49.0), Vector2(0.0, 52.0), Vector2(0.0, 52.0)])
 	_add_bone_value_track(lying_animation, "Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale",
 		PackedFloat64Array([0.0, 1.2, 2.4, 3.6, 4.8, 6.0, 7.2]),
-		[Vector2(1.015, 0.78), Vector2(1.035, 0.82), Vector2(1.015, 0.78), Vector2(1.015, 0.78), Vector2(1.035, 0.82), Vector2(1.015, 0.78), Vector2(1.015, 0.78)])
+		[Vector2(1.015, 0.72), Vector2(1.035, 0.76), Vector2(1.015, 0.72), Vector2(1.015, 0.72), Vector2(1.035, 0.76), Vector2(1.015, 0.72), Vector2(1.015, 0.72)])
 	_add_bone_value_track(lying_animation, "Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation",
 		PackedFloat64Array([0.0, 2.4, 2.9, 3.5, 4.2, 7.2]),
 		[0.10, 0.10, 0.055, 0.10, 0.10, 0.10])
@@ -585,6 +627,10 @@ func _get_live_posture_values() -> Dictionary:
 	return {
 		"Skeleton2D/RootAnchor/BodyMotionBone:position": _body_motion_bone.position,
 		"Skeleton2D/RootAnchor/BodyMotionBone:rotation": _body_motion_bone.rotation,
+		"Skeleton2D/RootAnchor/FrontLegNearBone:position": _front_leg_near_bone.position,
+		"Skeleton2D/RootAnchor/FrontLegNearBone:rotation": _front_leg_near_bone.rotation,
+		"Skeleton2D/RootAnchor/FrontLegFarBone:position": _front_leg_far_bone.position,
+		"Skeleton2D/RootAnchor/FrontLegFarBone:rotation": _front_leg_far_bone.rotation,
 		"Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale": _chest_bone.scale,
 		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position": _head_bone.position,
 		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation": _head_bone.rotation,
@@ -597,6 +643,10 @@ func _get_standing_posture_values() -> Dictionary:
 	return {
 		"Skeleton2D/RootAnchor/BodyMotionBone:position": Vector2.ZERO,
 		"Skeleton2D/RootAnchor/BodyMotionBone:rotation": 0.0,
+		"Skeleton2D/RootAnchor/FrontLegNearBone:position": _front_leg_near_rest_position,
+		"Skeleton2D/RootAnchor/FrontLegNearBone:rotation": 0.0,
+		"Skeleton2D/RootAnchor/FrontLegFarBone:position": _front_leg_far_rest_position,
+		"Skeleton2D/RootAnchor/FrontLegFarBone:rotation": 0.0,
 		"Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale": Vector2.ONE,
 		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position": _head_rest_position,
 		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation": 0.0,
@@ -607,10 +657,14 @@ func _get_standing_posture_values() -> Dictionary:
 
 func _get_lying_posture_values() -> Dictionary:
 	return {
-		"Skeleton2D/RootAnchor/BodyMotionBone:position": Vector2(0.0, 38.0),
+		"Skeleton2D/RootAnchor/BodyMotionBone:position": Vector2(0.0, 52.0),
 		"Skeleton2D/RootAnchor/BodyMotionBone:rotation": 0.015,
-		"Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale": Vector2(1.015, 0.78),
-		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position": _head_rest_position + Vector2(0.0, 28.0),
+		"Skeleton2D/RootAnchor/FrontLegNearBone:position": _front_leg_near_rest_position + Vector2(-26.0, -14.0),
+		"Skeleton2D/RootAnchor/FrontLegNearBone:rotation": 0.075,
+		"Skeleton2D/RootAnchor/FrontLegFarBone:position": _front_leg_far_rest_position + Vector2(-20.0, -12.0),
+		"Skeleton2D/RootAnchor/FrontLegFarBone:rotation": -0.075,
+		"Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale": Vector2(1.015, 0.72),
+		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position": _head_rest_position + Vector2(-4.0, 34.0),
 		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation": 0.10,
 		"Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation": -0.17,
 		"Skeleton2D/RootAnchor/BodyMotionBone/TailBone:rotation": 0.08
@@ -654,13 +708,13 @@ func _start_posture_transition(target_lying: bool) -> void:
 	# Pause whichever idle is active and preserve its exact current transforms.
 	# The first transition key is built from those values, avoiding a pose snap.
 	for layer_player in _rig_animation_players:
-		layer_player.stop()
+		layer_player.pause()
 	if _lying_idle_player != null:
-		_lying_idle_player.stop()
-	if _posture_animation_player != null:
-		_posture_animation_player.stop()
+		_lying_idle_player.pause()
 
 	var start_values := _get_live_posture_values()
+	if _posture_animation_player != null:
+		_posture_animation_player.stop(true)
 	var target_values := _get_lying_posture_values() if target_lying else _get_standing_posture_values()
 	var total_duration := 2.8 if target_lying else 2.6
 	var track_specs: Array[Dictionary] = []
@@ -668,7 +722,11 @@ func _start_posture_transition(target_lying: bool) -> void:
 	if target_lying:
 		# Settle the body first; then fold the wing and lower the head into rest.
 		track_specs = [
-			{"path": "Skeleton2D/RootAnchor/BodyMotionBone:position", "delay": 0.0, "duration": 1.65},
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone:position", "delay": 0.0, "duration": 1.85},
+			{"path": "Skeleton2D/RootAnchor/FrontLegNearBone:position", "delay": 0.45, "duration": 1.3},
+			{"path": "Skeleton2D/RootAnchor/FrontLegNearBone:rotation", "delay": 0.5, "duration": 1.1},
+			{"path": "Skeleton2D/RootAnchor/FrontLegFarBone:position", "delay": 0.45, "duration": 1.3},
+			{"path": "Skeleton2D/RootAnchor/FrontLegFarBone:rotation", "delay": 0.5, "duration": 1.1},
 			{"path": "Skeleton2D/RootAnchor/BodyMotionBone:rotation", "delay": 0.0, "duration": 1.65},
 			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale", "delay": 0.35, "duration": 1.35},
 			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation", "delay": 0.2, "duration": 1.05},
@@ -680,6 +738,10 @@ func _start_posture_transition(target_lying: bool) -> void:
 	else:
 		# Lift the head and unfold the wing first; then raise the chest and body.
 		track_specs = [
+			{"path": "Skeleton2D/RootAnchor/FrontLegNearBone:position", "delay": 0.0, "duration": 0.75},
+			{"path": "Skeleton2D/RootAnchor/FrontLegNearBone:rotation", "delay": 0.0, "duration": 0.75},
+			{"path": "Skeleton2D/RootAnchor/FrontLegFarBone:position", "delay": 0.0, "duration": 0.75},
+			{"path": "Skeleton2D/RootAnchor/FrontLegFarBone:rotation", "delay": 0.0, "duration": 0.75},
 			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position", "delay": 0.0, "duration": 0.95},
 			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation", "delay": 0.0, "duration": 0.9},
 			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation", "delay": 0.0, "duration": 0.9},
@@ -723,19 +785,22 @@ func _on_posture_transition_finished(animation_name: StringName) -> void:
 		return
 	if _posture_state == &"to_lying":
 		_posture_state = &"lying"
+		_lying_idle_player.stop()
 		_lying_idle_player.play(&"lying_idle")
 	elif _posture_state == &"to_standing":
 		_posture_state = &"standing"
 		for layer_player in _rig_animation_players:
+			# Restart at the exact standing rest keys, then resume the approved idle cycles.
+			layer_player.stop()
 			layer_player.play(&"idle")
 	_update_status()
 
 
 func _reset_posture_to_standing() -> void:
 	if _posture_animation_player != null:
-		_posture_animation_player.stop()
+		_posture_animation_player.stop(true)
 	if _lying_idle_player != null:
-		_lying_idle_player.stop()
+		_lying_idle_player.stop(true)
 	if _body_motion_bone == null:
 		_posture_state = &"standing"
 		return
@@ -745,22 +810,28 @@ func _reset_posture_to_standing() -> void:
 	_chest_bone.scale = standing_values["Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale"]
 	_head_bone.position = standing_values["Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position"]
 	_head_bone.rotation = standing_values["Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation"]
+	_front_leg_near_bone.position = standing_values["Skeleton2D/RootAnchor/FrontLegNearBone:position"]
+	_front_leg_near_bone.rotation = standing_values["Skeleton2D/RootAnchor/FrontLegNearBone:rotation"]
+	_front_leg_far_bone.position = standing_values["Skeleton2D/RootAnchor/FrontLegFarBone:position"]
+	_front_leg_far_bone.rotation = standing_values["Skeleton2D/RootAnchor/FrontLegFarBone:rotation"]
 	_wing_bone.rotation = standing_values["Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation"]
 	_tail_bone.rotation = standing_values["Skeleton2D/RootAnchor/BodyMotionBone/TailBone:rotation"]
 	_posture_state = &"standing"
 
 
 func _create_contact_shadow_texture() -> Texture2D:
-	var image := Image.create(96, 20, false, Image.FORMAT_RGBA8)
-	var center := Vector2(47.5, 9.5)
+	# A soft projected oval matching the 2:1 ground-diamond footprint. The old
+	# 96x20, 0.18-alpha strip was too flat and too faint at the Drake's display scale.
+	var image := Image.create(128, 64, false, Image.FORMAT_RGBA8)
+	var center := Vector2(63.5, 31.5)
 	for y in range(image.get_height()):
 		for x in range(image.get_width()):
-			var dx := (float(x) - center.x) / 45.0
-			var dy := (float(y) - center.y) / 8.0
-			var distance_squared := dx * dx + dy * dy
-			var falloff := clampf(1.0 - distance_squared, 0.0, 1.0)
-			var alpha := 0.18 * falloff * falloff
-			image.set_pixel(x, y, Color(0.075, 0.105, 0.075, alpha))
+			var dx := (float(x) - center.x) / 59.0
+			var dy := (float(y) - center.y) / 27.0
+			var distance := sqrt(dx * dx + dy * dy)
+			var falloff := clampf(1.0 - distance, 0.0, 1.0)
+			var alpha := 0.34 * falloff * falloff
+			image.set_pixel(x, y, Color(0.035, 0.052, 0.038, alpha))
 	return ImageTexture.create_from_image(image)
 
 
