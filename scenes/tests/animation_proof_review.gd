@@ -36,6 +36,14 @@ var _rigged_drake: Node2D
 var _rig_animation_player: AnimationPlayer
 var _rig_animation_players: Array[AnimationPlayer] = []
 var _chest_bone: Bone2D
+var _body_motion_bone: Bone2D
+var _head_bone: Bone2D
+var _wing_bone: Bone2D
+var _tail_bone: Bone2D
+var _head_rest_position := Vector2.ZERO
+var _posture_animation_player: AnimationPlayer
+var _lying_idle_player: AnimationPlayer
+var _posture_state: StringName = &"standing"
 var _drake_shadow: Sprite2D
 var _status_label: Label
 var _drake_height_gcu := DEFAULT_DRAKE_HEIGHT_GCU
@@ -70,7 +78,7 @@ func _ready() -> void:
 		_drake_height_gcu,
 		_drake_height_gcu * CELL_SIZE.y
 	])
-	print("Controls: SPACE cycle RIG/SHEET/STATIC | 4=1.0 GCU 5=1.25 GCU 6=1.5 GCU | R=restart all rig layers")
+	print("Controls: L=toggle STANDING/LYING | SPACE cycle RIG/SHEET/STATIC | 4/5/6=size | R=reset standing idle")
 
 
 func _draw() -> void:
@@ -302,6 +310,7 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	body_motion_bone.set_autocalculate_length_and_angle(false)
 	body_motion_bone.length = 1.0
 	root_bone.add_child(body_motion_bone)
+	_body_motion_bone = body_motion_bone
 
 	var torso_bone := Bone2D.new()
 	torso_bone.name = "TorsoBone"
@@ -317,6 +326,8 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	head_bone.set_autocalculate_length_and_angle(false)
 	head_bone.length = 82.0
 	body_motion_bone.add_child(head_bone)
+	_head_bone = head_bone
+	_head_rest_position = head_bone.position
 
 	var wing_bone := Bone2D.new()
 	wing_bone.name = "WingBone"
@@ -324,6 +335,7 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	wing_bone.set_autocalculate_length_and_angle(false)
 	wing_bone.length = 65.0
 	body_motion_bone.add_child(wing_bone)
+	_wing_bone = wing_bone
 
 	var tail_bone := Bone2D.new()
 	tail_bone.name = "TailBone"
@@ -331,6 +343,7 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	tail_bone.set_autocalculate_length_and_angle(false)
 	tail_bone.length = 90.0
 	body_motion_bone.add_child(tail_bone)
+	_tail_bone = tail_bone
 
 	# Cache the default pose before animation starts.
 	root_bone.rest = root_bone.transform
@@ -477,6 +490,8 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 		[0.0, 0.0, -0.11, -0.05, 0.095, 0.04, 0.0])
 	_create_rig_layer_player("TailIdlePlayer", tail_animation)
 
+	_create_posture_players()
+
 	print("[AnimationProof] Multi-part rig: 49x49 grid, %d vertices, %d quads; torso/head/wing/tail weights active." % [
 		points.size(),
 		mesh_polygons.size()
@@ -518,6 +533,221 @@ func _create_rig_layer_player(player_name: String, animation: Animation) -> Anim
 	player.play(&"idle")
 	_rig_animation_players.append(player)
 	return player
+
+
+func _create_posture_players() -> void:
+	# Posture animation is deliberately separate from the approved standing-idle
+	# layers. The idle tracks are not edited; they are paused during transitions.
+	_posture_animation_player = AnimationPlayer.new()
+	_posture_animation_player.name = "PostureTransitionPlayer"
+	_posture_animation_player.root_node = NodePath("..")
+	_rigged_drake.add_child(_posture_animation_player)
+	var posture_library := AnimationLibrary.new()
+	_posture_animation_player.add_animation_library(&"", posture_library)
+	_posture_animation_player.animation_finished.connect(_on_posture_transition_finished)
+
+	_lying_idle_player = AnimationPlayer.new()
+	_lying_idle_player.name = "LyingIdlePlayer"
+	_lying_idle_player.root_node = NodePath("..")
+	_rigged_drake.add_child(_lying_idle_player)
+	var lying_library := AnimationLibrary.new()
+	var lying_animation := Animation.new()
+	lying_animation.resource_name = "lying_idle"
+	lying_animation.length = 7.2
+	lying_animation.loop_mode = Animation.LOOP_LINEAR
+
+	# A low, slow breathing cycle with occasional independent head, wing and tail
+	# adjustments. These tracks only run after the down-transition completes.
+	_add_bone_value_track(lying_animation, "Skeleton2D/RootAnchor/BodyMotionBone:position",
+		PackedFloat64Array([0.0, 1.2, 2.4, 3.6, 4.8, 6.0, 7.2]),
+		[Vector2(0.0, 22.0), Vector2(0.0, 20.0), Vector2(0.0, 22.0), Vector2(0.0, 22.0), Vector2(0.0, 20.0), Vector2(0.0, 22.0), Vector2(0.0, 22.0)])
+	_add_bone_value_track(lying_animation, "Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale",
+		PackedFloat64Array([0.0, 1.2, 2.4, 3.6, 4.8, 6.0, 7.2]),
+		[Vector2(1.015, 0.86), Vector2(1.035, 0.89), Vector2(1.015, 0.86), Vector2(1.015, 0.86), Vector2(1.035, 0.89), Vector2(1.015, 0.86), Vector2(1.015, 0.86)])
+	_add_bone_value_track(lying_animation, "Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation",
+		PackedFloat64Array([0.0, 2.4, 2.9, 3.5, 4.2, 7.2]),
+		[0.08, 0.08, 0.035, 0.08, 0.08, 0.08])
+	_add_bone_value_track(lying_animation, "Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation",
+		PackedFloat64Array([0.0, 4.9, 5.3, 5.8, 7.2]),
+		[-0.14, -0.14, -0.08, -0.14, -0.14])
+	_add_bone_value_track(lying_animation, "Skeleton2D/RootAnchor/BodyMotionBone/TailBone:rotation",
+		PackedFloat64Array([0.0, 3.5, 3.9, 4.4, 7.2]),
+		[0.06, 0.06, 0.015, 0.06, 0.06])
+
+	var lying_error := lying_library.add_animation(&"lying_idle", lying_animation)
+	if lying_error != OK:
+		push_error("Could not register Forest Drake lying idle.")
+		return
+	_lying_idle_player.add_animation_library(&"", lying_library)
+
+
+func _get_live_posture_values() -> Dictionary:
+	return {
+		"Skeleton2D/RootAnchor/BodyMotionBone:position": _body_motion_bone.position,
+		"Skeleton2D/RootAnchor/BodyMotionBone:rotation": _body_motion_bone.rotation,
+		"Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale": _chest_bone.scale,
+		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position": _head_bone.position,
+		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation": _head_bone.rotation,
+		"Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation": _wing_bone.rotation,
+		"Skeleton2D/RootAnchor/BodyMotionBone/TailBone:rotation": _tail_bone.rotation
+	}
+
+
+func _get_standing_posture_values() -> Dictionary:
+	return {
+		"Skeleton2D/RootAnchor/BodyMotionBone:position": Vector2.ZERO,
+		"Skeleton2D/RootAnchor/BodyMotionBone:rotation": 0.0,
+		"Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale": Vector2.ONE,
+		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position": _head_rest_position,
+		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation": 0.0,
+		"Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation": 0.0,
+		"Skeleton2D/RootAnchor/BodyMotionBone/TailBone:rotation": 0.0
+	}
+
+
+func _get_lying_posture_values() -> Dictionary:
+	return {
+		"Skeleton2D/RootAnchor/BodyMotionBone:position": Vector2(0.0, 22.0),
+		"Skeleton2D/RootAnchor/BodyMotionBone:rotation": 0.012,
+		"Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale": Vector2(1.015, 0.86),
+		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position": _head_rest_position + Vector2(0.0, 17.0),
+		"Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation": 0.08,
+		"Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation": -0.14,
+		"Skeleton2D/RootAnchor/BodyMotionBone/TailBone:rotation": 0.06
+	}
+
+
+func _add_posture_transition_track(animation: Animation, property_path: String, start_value: Variant, end_value: Variant, delay: float, duration: float, total_duration: float) -> void:
+	var track_index := animation.add_track(Animation.TYPE_VALUE)
+	animation.track_set_path(track_index, NodePath(property_path))
+	animation.track_set_interpolation_type(track_index, Animation.INTERPOLATION_LINEAR)
+	animation.track_insert_key(track_index, 0.0, start_value)
+	if delay > 0.001:
+		animation.track_insert_key(track_index, delay, start_value)
+
+	for step in range(1, 5):
+		var progress := float(step) / 4.0
+		var eased_progress := progress * progress * (3.0 - 2.0 * progress)
+		var key_time := delay + duration * progress
+		animation.track_insert_key(track_index, key_time, _interpolate_posture_value(start_value, end_value, eased_progress))
+
+	var finish_time := delay + duration
+	animation.track_insert_key(track_index, finish_time, end_value)
+	if finish_time < total_duration:
+		animation.track_insert_key(track_index, total_duration, end_value)
+
+
+func _interpolate_posture_value(from_value: Variant, to_value: Variant, weight: float) -> Variant:
+	if typeof(from_value) == TYPE_VECTOR2:
+		return Vector2(from_value).lerp(Vector2(to_value), weight)
+	return lerpf(float(from_value), float(to_value), weight)
+
+
+func _start_posture_transition(target_lying: bool) -> void:
+	if _display_mode != &"rig" or _posture_state == &"to_lying" or _posture_state == &"to_standing":
+		return
+	if target_lying and _posture_state == &"lying":
+		return
+	if not target_lying and _posture_state == &"standing":
+		return
+
+	# Pause whichever idle is active and preserve its exact current transforms.
+	# The first transition key is built from those values, avoiding a pose snap.
+	for layer_player in _rig_animation_players:
+		layer_player.stop()
+	if _lying_idle_player != null:
+		_lying_idle_player.stop()
+	if _posture_animation_player != null:
+		_posture_animation_player.stop()
+
+	var start_values := _get_live_posture_values()
+	var target_values := _get_lying_posture_values() if target_lying else _get_standing_posture_values()
+	var total_duration := 2.8 if target_lying else 2.6
+	var track_specs: Array[Dictionary] = []
+
+	if target_lying:
+		# Settle the body first; then fold the wing and lower the head into rest.
+		track_specs = [
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone:position", "delay": 0.0, "duration": 1.65},
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone:rotation", "delay": 0.0, "duration": 1.65},
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale", "delay": 0.35, "duration": 1.35},
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation", "delay": 0.2, "duration": 1.05},
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/TailBone:rotation", "delay": 0.8, "duration": 1.0},
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position", "delay": 0.95, "duration": 1.05},
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation", "delay": 0.95, "duration": 1.05}
+		]
+		_posture_state = &"to_lying"
+	else:
+		# Lift the head and unfold the wing first; then raise the chest and body.
+		track_specs = [
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position", "delay": 0.0, "duration": 0.95},
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation", "delay": 0.0, "duration": 0.9},
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation", "delay": 0.0, "duration": 0.9},
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/TailBone:rotation", "delay": 0.1, "duration": 0.8},
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale", "delay": 0.35, "duration": 1.1},
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone:position", "delay": 0.65, "duration": 1.45},
+			{"path": "Skeleton2D/RootAnchor/BodyMotionBone:rotation", "delay": 0.65, "duration": 1.3}
+		]
+		_posture_state = &"to_standing"
+
+	var transition := Animation.new()
+	transition.resource_name = "posture_transition"
+	transition.length = total_duration
+	transition.loop_mode = Animation.LOOP_NONE
+	for spec in track_specs:
+		var property_path: String = spec["path"]
+		_add_posture_transition_track(
+			transition,
+			property_path,
+			start_values[property_path],
+			target_values[property_path],
+			float(spec["delay"]),
+			float(spec["duration"]),
+			total_duration
+		)
+
+	var posture_library := _posture_animation_player.get_animation_library(&"")
+	if posture_library.has_animation(&"transition"):
+		posture_library.remove_animation(&"transition")
+	var add_error := posture_library.add_animation(&"transition", transition)
+	if add_error != OK:
+		push_error("Could not create Forest Drake posture transition.")
+		_posture_state = &"standing" if target_lying else &"lying"
+		return
+	_posture_animation_player.play(&"transition")
+	_update_status()
+
+
+func _on_posture_transition_finished(animation_name: StringName) -> void:
+	if animation_name != &"transition":
+		return
+	if _posture_state == &"to_lying":
+		_posture_state = &"lying"
+		_lying_idle_player.play(&"lying_idle")
+	elif _posture_state == &"to_standing":
+		_posture_state = &"standing"
+		for layer_player in _rig_animation_players:
+			layer_player.play(&"idle")
+	_update_status()
+
+
+func _reset_posture_to_standing() -> void:
+	if _posture_animation_player != null:
+		_posture_animation_player.stop()
+	if _lying_idle_player != null:
+		_lying_idle_player.stop()
+	if _body_motion_bone == null:
+		_posture_state = &"standing"
+		return
+	var standing_values := _get_standing_posture_values()
+	_body_motion_bone.position = standing_values["Skeleton2D/RootAnchor/BodyMotionBone:position"]
+	_body_motion_bone.rotation = standing_values["Skeleton2D/RootAnchor/BodyMotionBone:rotation"]
+	_chest_bone.scale = standing_values["Skeleton2D/RootAnchor/BodyMotionBone/TorsoBone:scale"]
+	_head_bone.position = standing_values["Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:position"]
+	_head_bone.rotation = standing_values["Skeleton2D/RootAnchor/BodyMotionBone/HeadNeckBone:rotation"]
+	_wing_bone.rotation = standing_values["Skeleton2D/RootAnchor/BodyMotionBone/WingBone:rotation"]
+	_tail_bone.rotation = standing_values["Skeleton2D/RootAnchor/BodyMotionBone/TailBone:rotation"]
+	_posture_state = &"standing"
 
 
 func _create_contact_shadow_texture() -> Texture2D:
@@ -712,7 +942,7 @@ func _build_overlay() -> void:
 
 	var controls := Label.new()
 	controls.position = Vector2(24.0, 676.0)
-	controls.text = "SPACE cycle RIG / SHEET / STATIC | 4 64px | 5 80px | 6 96px | R restart all layers"
+	controls.text = "L toggle STANDING / LYING | SPACE RIG / SHEET / STATIC | 4 64px | 5 80px | 6 96px | R reset standing"
 	controls.add_theme_font_size_override("font_size", 14)
 	controls.add_theme_color_override("font_color", Color("#f3eddc"))
 	canvas.add_child(controls)
@@ -724,7 +954,15 @@ func _update_status() -> void:
 	var size_text := "%.2f GCU / %.0f px" % [_drake_height_gcu, _drake_height_gcu * CELL_SIZE.y]
 	match _display_mode:
 		&"rig":
-			_status_label.text = "FOREST DRAKE  •  MULTI-PART IDLE  •  BODY / HEAD / WING / TAIL  •  %s" % size_text
+			var posture_label := "STANDING IDLE"
+			match _posture_state:
+				&"to_lying":
+					posture_label = "LOWERING TO REST"
+				&"lying":
+					posture_label = "LYING IDLE"
+				&"to_standing":
+					posture_label = "RISING TO STAND"
+			_status_label.text = "FOREST DRAKE  •  MULTI-PART RIG  •  %s  •  %s" % [posture_label, size_text]
 		&"sheet":
 			_status_label.text = "FOREST DRAKE  •  16-FRAME SPRITE IDLE  •  0.15 SEC/FRAME  •  %s" % size_text
 		_:
@@ -738,6 +976,8 @@ func _set_drake_height_gcu(next_height: float) -> void:
 
 
 func _set_display_mode(next_mode: StringName) -> void:
+	if next_mode != &"rig":
+		_reset_posture_to_standing()
 	_display_mode = next_mode
 	if _rigged_drake != null:
 		_rigged_drake.visible = _display_mode == &"rig"
@@ -770,6 +1010,7 @@ func _cycle_display_mode() -> void:
 func _restart_current_animation() -> void:
 	match _display_mode:
 		&"rig":
+			_reset_posture_to_standing()
 			for layer_player in _rig_animation_players:
 				layer_player.play(&"idle")
 		&"sheet":
@@ -793,5 +1034,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_set_drake_height_gcu(1.25)
 		KEY_6:
 			_set_drake_height_gcu(1.5)
+		KEY_L:
+			if _posture_state == &"standing":
+				_start_posture_transition(true)
+			elif _posture_state == &"lying":
+				_start_posture_transition(false)
 		KEY_R:
 			_restart_current_animation()
