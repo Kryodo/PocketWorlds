@@ -75,7 +75,7 @@ func _ready() -> void:
 	_build_drake()
 	_build_overlay()
 
-	print("ANIMATION PROOF V4 — POSTURE TRANSITIONS READY")
+	print("ANIMATION PROOF V5 — LYING POSE / LEG ARTICULATION / SHADOW REFINEMENT")
 	print("Ground: 7x5 candidate grid, 128x64 GCU, 1024x512 source tiles at 0.125 scale.")
 	print("Drake idle: 16 frames, 4x4 sheet, %.1f FPS, target %.2f GCU / %.0f px." % [
 		DEFAULT_IDLE_FPS,
@@ -238,6 +238,7 @@ func _build_drake() -> void:
 	_drake_shadow.position = _cell_center(DRAKE_CELL) + Vector2(0.0, -2.0)
 	# 128x64 isometric footprint: broad enough to read around the feet at game scale.
 	_drake_shadow.scale = Vector2(0.80, 0.68)
+	_drake_shadow.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	_drake_shadow.z_index = 1
 	_sorted_world.add_child(_drake_shadow)
 
@@ -999,7 +1000,7 @@ func _build_overlay() -> void:
 
 	var title := Label.new()
 	title.position = Vector2(24.0, 16.0)
-	title.text = "POCKET WORLDS  |  ANIMATION PROOF V4"
+	title.text = "POCKET WORLDS  |  ANIMATION PROOF V5"
 	title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", Color("#f3eddc"))
 	canvas.add_child(title)
