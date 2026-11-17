@@ -1,4 +1,4 @@
-# Pocket Worlds — Animation Proof V5
+# Pocket Worlds — Animation Proof V6
 
 ## Purpose
 
@@ -133,3 +133,14 @@ The earlier transition code called `stop()` on the active idle players and the p
 The transition now pauses the active idle layers, samples their still-visible transforms, and calls `stop(true)` on the previous transition player so its visual state is not reset. At the end of get-up, the standing idle layers are deliberately restarted at their first keys, which match the standing rest pose.
 
 Runtime validation is still required in Godot 4.7. Check especially the foreleg pivots/weights, whether the chest now sits low enough, and whether the larger isometric shadow reads naturally rather than as a dark oval.
+
+
+## V6 — Foreground paw integrity and anchored contact shadow
+
+The V5 review was positive overall. Two small issues remained: the outer nail on the foreground/right front paw was deforming too much, and the shadow was too faint and not aligned convincingly with the Drake.
+
+- The foreground/right foreleg now has its own narrower influence region, shifted slightly toward the paw. Its weight field uses a broad full-weight core so the paw and three nails move more like one coherent shape instead of falling through a partial-weight deformation zone. The other front leg's field is unchanged.
+- The shadow is now a child of the rig root, behind the skinned mesh. It shares the Drake's exact root transform and display scale instead of being a separate world-space sprite. Its local offset is moved toward the estimated cluster of ground-contact points, rather than centring it on the lowest point of the full artwork.
+- The procedural shadow now combines a broad soft oval with a stronger central contact core. It keeps a 2:1 isometric footprint, a darker green-black tint and a higher but still feathered alpha.
+
+The foreground paw weights and shadow offset are still estimated from the 1024px source artwork. Runtime validation in Godot 4.7 is needed to confirm that the outer nail remains intact and that the shadow sits under the paws/body on the diamond tile at 1.0, 1.25 and 1.5 GCU. Avoid increasing the whole-leg motion if the nail still needs adjustment; refine only the foreground paw's influence centre/radii or its local weight field.
