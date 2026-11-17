@@ -1,4 +1,4 @@
-# Pocket Worlds — Animation Proof V6
+# Pocket Worlds — Animation Proof V6 + Walking Proof V1
 
 ## Purpose
 
@@ -38,7 +38,8 @@ A separate, compact, low-opacity contact shadow is generated procedurally at run
 - **4:** display height 1.0 GCU (64 px).
 - **5:** display height 1.25 GCU (80 px).
 - **6:** display height 1.5 GCU (96 px).
-- **L:** toggle between standing and lying, including the transitions.
+- **W:** toggle the experimental in-place walk cycle on/off. The Drake blends back to standing idle when stopped.
+- **L:** toggle between standing and lying, including the transitions. L is ignored while the walk cycle is active.
 - **R:** reset the rig to the approved standing idle, or restart the sprite-sheet animation when that comparison is selected.
 
 ## Transparency diagnostics
@@ -144,3 +145,30 @@ The V5 review was positive overall. Two small issues remained: the outer nail on
 - The procedural shadow now combines a broad soft oval with a stronger central contact core. It keeps a 2:1 isometric footprint, a darker green-black tint and a higher but still feathered alpha.
 
 The foreground paw weights and shadow offset are still estimated from the 1024px source artwork. Runtime validation in Godot 4.7 is needed to confirm that the outer nail remains intact and that the shadow sits under the paws/body on the diamond tile at 1.0, 1.25 and 1.5 GCU. Avoid increasing the whole-leg motion if the nail still needs adjustment; refine only the foreground paw's influence centre/radii or its local weight field.
+
+
+## V1 — Experimental in-place walking proof
+
+The walking test is intentionally layered onto the approved V6 rig without changing its mesh topology, bone weights, source artwork, standing-idle animations, lying idle or posture-transition values.
+
+Press **W** in RIG mode:
+- The four approved idle layers pause at their current visible transforms.
+- A 1.2-second looping gait is generated from those exact transforms, avoiding an initial pose snap.
+- The two foreleg influences already present in the single-image mesh swing in alternating phases. Each uses a small forward/reach offset and a lift/recovery arc.
+- The body adds a restrained two-beat vertical pulse and slight counter-rotation. The chest compresses subtly, the head counterbalances, the wing reacts lightly and the tail sways against the gait.
+- Press **W** again to blend back to the standing rest pose over 0.72 seconds, then restart the four approved independent idle layers.
+
+This is a **walking-in-place deformation test**, not a complete quadruped locomotion solution. The approved single-image mesh has independently weighted regions for only the two visible forelegs. The rear legs do not yet have independent joints or dedicated painted cutouts, and the Drake does not translate across the ground. Their behaviour is therefore a known limitation rather than something this proof attempts to hide by adding speculative weights that could damage the approved standing and lying silhouettes.
+
+### What to inspect
+
+Run the scene with F6 and compare the gait at 1.0, 1.25 and 1.5 GCU. Watch:
+- whether the front feet alternate clearly without stretching the claws or pulling the belly;
+- whether the body bounce feels like weight transfer rather than repeated bobbing;
+- whether the head, wing and tail counter-motion stays restrained;
+- whether W starts and stops without a visible pose snap;
+- whether the stationary rear limbs make the result read as an incomplete crawl.
+
+The scene remains an isolated experiment. No gameplay, world movement, creature AI, approved idle/rest animation tracks or original PNGs are changed. The current foreleg influences are deliberately left intact. If the rear limbs make the gait feel incomplete, the next step is art preparation in Qwen/Photoshop: isolate the limb shapes with clean overlaps/occlusion and add dedicated leg layers or a small set of key poses, then keep Godot responsible for timing, transitions and secondary motion.
+
+Runtime validation in Godot 4.7 is required. This implementation has not been run in the editor as part of this change.
