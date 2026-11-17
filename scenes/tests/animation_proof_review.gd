@@ -75,7 +75,7 @@ func _ready() -> void:
 	_build_drake()
 	_build_overlay()
 
-	print("ANIMATION PROOF V5 — LYING POSE / LEG ARTICULATION / SHADOW REFINEMENT")
+	print("ANIMATION PROOF V6 — FOREGROUND PAW AND CONTACT SHADOW REFINEMENT")
 	print("Ground: 7x5 candidate grid, 128x64 GCU, 1024x512 source tiles at 0.125 scale.")
 	print("Drake idle: 16 frames, 4x4 sheet, %.1f FPS, target %.2f GCU / %.0f px." % [
 		DEFAULT_IDLE_FPS,
@@ -230,18 +230,6 @@ func _build_drake() -> void:
 	_animated_drake.z_index = 2
 	_sorted_world.add_child(_animated_drake)
 
-	# Static, soft contact shadow independent of the animation frames.
-	_drake_shadow = Sprite2D.new()
-	_drake_shadow.name = "ForestDrake_ContactShadow"
-	_drake_shadow.texture = _create_contact_shadow_texture()
-	_drake_shadow.centered = true
-	_drake_shadow.position = _cell_center(DRAKE_CELL) + Vector2(0.0, -2.0)
-	# 128x64 isometric footprint; actual size is scaled with the Drake below.
-	_drake_shadow.scale = Vector2(0.80, 0.68)
-	_drake_shadow.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	_drake_shadow.z_index = 1
-	_sorted_world.add_child(_drake_shadow)
-
 	var static_image := _load_png_image(DRAKE_STATIC_PATH, "Forest Drake static", true)
 	if static_image != null:
 		var static_bounds := _get_visible_bounds(static_image)
@@ -266,6 +254,7 @@ func _build_drake() -> void:
 		_sorted_world.add_child(_static_drake)
 		_rigged_drake_source_height = float(static_bounds.size.y)
 		_build_drake_rig(static_image, static_bounds)
+		_build_contact_shadow()
 
 	_apply_drake_scale()
 	_set_display_mode(&"rig")
@@ -406,8 +395,9 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	# Approximate source-image regions for the two visible forelegs. Keep these
 	# influences tight so the new reach does not drag the belly or shoulder.
 	var front_leg_near_center := Vector2(410.0, 760.0)
-	var front_leg_far_center := Vector2(545.0, 760.0)
-	var front_leg_radii := Vector2(92.0, 86.0)
+	var front_leg_far_center := Vector2(530.0, 770.0)
+	var front_leg_near_radii := Vector2(92.0, 86.0)
+	var front_leg_far_radii := Vector2(90.0, 78.0)
 
 	for row in range(GRID_ROWS):
 		for column in range(GRID_COLUMNS):
@@ -423,8 +413,10 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 			var head_weight := _elliptical_bone_influence(source_point, head_center, head_radii, 0.96, 0.70)
 			var wing_weight := _elliptical_bone_influence(source_point, wing_center, wing_radii, 0.92)
 			var tail_weight := _elliptical_bone_influence(source_point, tail_center, tail_radii, 0.95)
-			var front_leg_near_weight := _elliptical_bone_influence(source_point, front_leg_near_center, front_leg_radii, 0.96, 0.34)
-			var front_leg_far_weight := _elliptical_bone_influence(source_point, front_leg_far_center, front_leg_radii, 0.96, 0.34)
+			var front_leg_near_weight := _elliptical_bone_influence(source_point, front_leg_near_center, front_leg_near_radii, 0.96, 0.34)
+			# Keep the entire foreground paw and its three nails inside a broad rigid core.
+			# This prevents the outer claw from falling into a partial-weight stretch zone.
+			var front_leg_far_weight := _elliptical_bone_influence(source_point, front_leg_far_center, front_leg_far_radii, 0.96, 0.78)
 
 			# Leave a small root influence everywhere, and normalize overlaps so weights sum to one.
 			var total_weight := torso_weight + head_weight + wing_weight + tail_weight + front_leg_near_weight + front_leg_far_weight
@@ -820,19 +812,39 @@ func _reset_posture_to_standing() -> void:
 	_posture_state = &"standing"
 
 
+func _build_contact_shadow() -> void:
+	if _rigged_drake == null:
+		return
+	# The shadow lives in the same local coordinate space as the skinned artwork.
+	# This makes its offset and scale follow the actual ground anchor at every test size.
+	_drake_shadow = Sprite2D.new()
+	_drake_shadow.name = "ForestDrake_ContactShadow"
+	_drake_shadow.texture = _create_contact_shadow_texture()
+	_drake_shadow.centered = true
+	# The source's lowest centre point is not the centre of the four-foot footprint.
+	# Shift toward the actual paw/body contact cluster in source-image coordinates.
+	_drake_shadow.position = Vector2(-30.0, -58.0)
+	_drake_shadow.scale = Vector2.ONE * 6.6
+	_drake_shadow.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_drake_shadow.z_index = -1
+	_rigged_drake.add_child(_drake_shadow)
+
+
 func _create_contact_shadow_texture() -> Texture2D:
-	# A soft projected oval matching the 2:1 ground-diamond footprint. The old
-	# 96x20, 0.18-alpha strip was too flat and too faint at the Drake's display scale.
+	# Soft, broad isometric footprint with a visible contact core and a wider falloff.
+	# The 2:1 aspect follows the ground diamond; transparency remains soft at the edge.
 	var image := Image.create(128, 64, false, Image.FORMAT_RGBA8)
 	var center := Vector2(63.5, 31.5)
 	for y in range(image.get_height()):
 		for x in range(image.get_width()):
 			var dx := (float(x) - center.x) / 59.0
 			var dy := (float(y) - center.y) / 27.0
-			var distance := sqrt(dx * dx + dy * dy)
-			var falloff := clampf(1.0 - distance, 0.0, 1.0)
-			var alpha := 0.34 * falloff * falloff
-			image.set_pixel(x, y, Color(0.035, 0.052, 0.038, alpha))
+			var distance_squared := dx * dx + dy * dy
+			var falloff := clampf(1.0 - distance_squared, 0.0, 1.0)
+			var broad_shadow := 0.38 * pow(falloff, 1.15)
+			var contact_core := 0.20 * exp(-distance_squared * 12.0)
+			var alpha := clampf(broad_shadow + contact_core, 0.0, 0.58)
+			image.set_pixel(x, y, Color(0.025, 0.038, 0.028, alpha))
 	return ImageTexture.create_from_image(image)
 
 
@@ -844,9 +856,6 @@ func _apply_drake_scale() -> void:
 	if _rigged_drake != null:
 		var rig_scale := target_height_px / maxf(_rigged_drake_source_height, 1.0)
 		_rigged_drake.scale = Vector2.ONE * rig_scale
-	if _drake_shadow != null:
-		# Keep the projected footprint proportional at all three test sizes.
-		_drake_shadow.scale = Vector2(target_height_px * 1.25 / 128.0, target_height_px * 0.55 / 64.0)
 	if _static_drake != null:
 		var static_scale := target_height_px / maxf(_static_drake_source_height, 1.0)
 		_static_drake.scale = Vector2.ONE * static_scale
@@ -1003,7 +1012,7 @@ func _build_overlay() -> void:
 
 	var title := Label.new()
 	title.position = Vector2(24.0, 16.0)
-	title.text = "POCKET WORLDS  |  ANIMATION PROOF V5"
+	title.text = "POCKET WORLDS  |  ANIMATION PROOF V6"
 	title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", Color("#f3eddc"))
 	canvas.add_child(title)
