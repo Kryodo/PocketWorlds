@@ -163,7 +163,7 @@ This first workflow stops at an aligned transparent sprite sheet and its review 
 After the frames pass visual review, the next isolated Godot experiment should:
 - load the aligned 4x4 sheet as sixteen SpriteFrames frames;
 - place its sprite root at the fixed ground pivot;
-- keep the isometric contact shadow at that root;
+- keep the isometric contact shadow parented to that root at the calibrated local offset (-30, -58), scaled with the sprite;
 - move the root through GridProjection.grid_to_world() / the existing 2:1 ground axes;
 - synchronize travel speed with playback and planted-foot phases.
 
