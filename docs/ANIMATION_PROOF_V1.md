@@ -1,8 +1,8 @@
-# Pocket Worlds — Animation Proof V2
+# Pocket Worlds — Animation Proof V3
 
 ## Purpose
 
-An isolated review scene for the Forest Drake 16-frame idle animation and the uploaded painterly ground/tree assets. It does not replace the main scene, gameplay, live 96x48 projection, or any approved source PNG.
+An isolated review scene comparing the Forest Drake's static artwork, 16-frame sprite sheet and an experimental multi-part skeletal idle. It also displays the painterly ground/tree assets. It does not replace the main scene, gameplay, live 96x48 projection, or any approved source PNG.
 
 ## Run
 
@@ -20,14 +20,9 @@ The ground board is 7x5 cells using the isolated candidate Ground Cell Unit of 1
 
 The tree is initially fitted to 4.2 GCU of visible height. The Forest Drake defaults to 1.25 GCU (80 world pixels) and can be adjusted at runtime for comparison. These are review values, not final asset-definition or collision footprints.
 
-## Forest Drake skeletal idle
+## V2 single-chest rig (superseded)
 
-The approved static Drake is also rendered as a single textured `Polygon2D` mesh bound to a `Skeleton2D`. The mesh uses a 33x33 UV grid (1,089 vertices / 1,024 quad cells) with two weighted bones:
-
-- `RootAnchor`: fixed at the character's ground-contact point; most vertices are fully influenced by it.
-- `ChestBone`: a soft radial weight field around the upper chest, with a maximum influence of 0.82. It animates only a small scale expansion and rotation over a 2.4-second looping `AnimationPlayer` clip.
-
-This is an initial deformation proof, not a final production rig. The chest weight region and animation amplitude may need adjustment after visual inspection. The original source PNG is read and matte-cleaned in memory; it is not modified.
+The first skeletal proof rendered the approved static Drake as one textured `Polygon2D` mesh bound to a `Skeleton2D`, using a 33x33 UV grid and a fixed root plus one chest influence. It established that the source artwork could be deformed in Godot, but its breathing was initially too subtle. The V3 rig below replaces this two-bone setup. The original source PNG continues to be read and matte-cleaned in memory; it is not modified.
 
 ## Drake sprite-sheet comparison
 
@@ -43,7 +38,7 @@ A separate, compact, low-opacity contact shadow is generated procedurally at run
 - **4:** display height 1.0 GCU (64 px).
 - **5:** display height 1.25 GCU (80 px).
 - **6:** display height 1.5 GCU (96 px).
-- **R:** restart the currently selected animation.
+- **R:** restart all active rig layers, or restart the sprite-sheet animation when that comparison is selected.
 
 ## Transparency diagnostics
 
