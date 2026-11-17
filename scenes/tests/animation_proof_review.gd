@@ -43,11 +43,13 @@ var _static_drake_source_height := 675.0
 func _ready() -> void:
 	_ground_root = Node2D.new()
 	_ground_root.name = "GroundTiles"
-	_ground_root.z_index = -100
+	# Keep the ground above the root's opaque background draw, but below world objects.
+	_ground_root.z_index = 0
 	add_child(_ground_root)
 
 	_sorted_world = Node2D.new()
 	_sorted_world.name = "YSortedWorld"
+	_sorted_world.z_index = 1
 	_sorted_world.y_sort_enabled = true
 	add_child(_sorted_world)
 
