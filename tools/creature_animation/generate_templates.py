@@ -129,11 +129,16 @@ def build_pose_guide(config: dict, output_dir: Path, frame_count: int):
 def build_alignment_overlays(config: dict, output_dir: Path):
     frame_w, frame_h = config["output_frame_px"]
     pivot_x, pivot_y = config["target_pivot_px"]
+    shadow_offset = config["source_contact_shadow_offset_px"]
+    source_w = config["source_canvas_px"][0]
+    scale = frame_w / source_w
+    shadow_x = pivot_x + shadow_offset[0] * scale
+    shadow_y = pivot_y + shadow_offset[1] * scale
 
     overlay = Image.new("RGBA", (frame_w, frame_h), (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
-    draw.ellipse((pivot_x - 56, pivot_y - 28,
-                  pivot_x + 56, pivot_y + 28),
+    draw.ellipse((shadow_x - 56, shadow_y - 28,
+                  shadow_x + 56, shadow_y + 28),
                  outline=(70, 210, 170, 220), width=2)
     draw.line((pivot_x - 17, pivot_y, pivot_x + 17, pivot_y),
               fill=(255, 70, 70, 255), width=2)
@@ -159,10 +164,13 @@ def build_master_pivot_reference(config: dict, output_dir: Path):
     if image.size != tuple(config["source_canvas_px"]):
         print(f"[WARN] Master image is {image.size}; expected {config['source_canvas_px']}.")
     pivot_x, pivot_y = config["source_ground_pivot_px"]
+    shadow_offset_x, shadow_offset_y = config["source_contact_shadow_offset_px"]
+    shadow_x = pivot_x + shadow_offset_x
+    shadow_y = pivot_y + shadow_offset_y
     preview = image.copy()
     draw = ImageDraw.Draw(preview, "RGBA")
-    draw.ellipse((pivot_x - 224, pivot_y - 112,
-                  pivot_x + 224, pivot_y + 112),
+    draw.ellipse((shadow_x - 224, shadow_y - 112,
+                  shadow_x + 224, shadow_y + 112),
                  outline=(70, 220, 170, 220), width=4)
     draw.line((pivot_x - 32, pivot_y, pivot_x + 32, pivot_y),
               fill=(255, 64, 64, 255), width=4)
