@@ -236,7 +236,7 @@ func _build_drake() -> void:
 	_drake_shadow.texture = _create_contact_shadow_texture()
 	_drake_shadow.centered = true
 	_drake_shadow.position = _cell_center(DRAKE_CELL) + Vector2(0.0, -2.0)
-	# 128x64 isometric footprint: broad enough to read around the feet at game scale.
+	# 128x64 isometric footprint; actual size is scaled with the Drake below.
 	_drake_shadow.scale = Vector2(0.80, 0.68)
 	_drake_shadow.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	_drake_shadow.z_index = 1
@@ -844,6 +844,9 @@ func _apply_drake_scale() -> void:
 	if _rigged_drake != null:
 		var rig_scale := target_height_px / maxf(_rigged_drake_source_height, 1.0)
 		_rigged_drake.scale = Vector2.ONE * rig_scale
+	if _drake_shadow != null:
+		# Keep the projected footprint proportional at all three test sizes.
+		_drake_shadow.scale = Vector2(target_height_px * 1.25 / 128.0, target_height_px * 0.55 / 64.0)
 	if _static_drake != null:
 		var static_scale := target_height_px / maxf(_static_drake_source_height, 1.0)
 		_static_drake.scale = Vector2.ONE * static_scale
