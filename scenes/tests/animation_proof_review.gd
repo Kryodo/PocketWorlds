@@ -37,7 +37,6 @@ var _rig_animation_player: AnimationPlayer
 var _chest_bone: Bone2D
 var _drake_shadow: Sprite2D
 var _status_label: Label
-var _current_fps := DEFAULT_IDLE_FPS
 var _drake_height_gcu := DEFAULT_DRAKE_HEIGHT_GCU
 var _display_mode: StringName = &"rig"
 var _animated_drake_source_height := 240.0
@@ -349,7 +348,7 @@ func _build_drake_rig(character_image: Image, visible_bounds: Rect2i) -> void:
 	character_mesh.uv = uvs
 	character_mesh.polygons = mesh_polygons
 	character_mesh.color = Color.WHITE
-	character_mesh.antialiased = true
+	character_mesh.antialiased = false
 	character_mesh.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	_rigged_drake.add_child(character_mesh)
 
