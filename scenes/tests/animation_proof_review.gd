@@ -77,7 +77,7 @@ func _ready() -> void:
 	_build_drake()
 	_build_overlay()
 
-	print("ANIMATION PROOF V6 — FOREGROUND PAW AND CONTACT SHADOW REFINEMENT")
+	print("ANIMATION PROOF V6 + WALKING PROOF V1")
 	print("Ground: 7x5 candidate grid, 128x64 GCU, 1024x512 source tiles at 0.125 scale.")
 	print("Drake idle: 16 frames, 4x4 sheet, %.1f FPS, target %.2f GCU / %.0f px." % [
 		DEFAULT_IDLE_FPS,
@@ -1211,7 +1211,7 @@ func _build_overlay() -> void:
 
 	var title := Label.new()
 	title.position = Vector2(24.0, 16.0)
-	title.text = "POCKET WORLDS  |  ANIMATION PROOF V6"
+	title.text = "POCKET WORLDS  |  ANIMATION PROOF V6 + WALKING PROOF V1"
 	title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", Color("#f3eddc"))
 	canvas.add_child(title)
