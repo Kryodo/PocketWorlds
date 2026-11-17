@@ -17,13 +17,16 @@ Both routes pass through the same frame extraction, matte validation, body-regis
 |---|---:|
 | Master artwork | art_inbox/creatures/ForestDrake_Static_1024.png |
 | Source canvas | 1024 x 1024 |
-| Source ground pivot | **(505, 792)** |
+| Source sprite-root pivot | **(535, 850)** |
+| Contact-shadow centre | (505, 792) |
+| Contact-shadow offset from root | (-30, -58) |
 | Output frame | 256 x 256 |
-| Pivot inside each output frame | **(126.25, 198)** |
+| Sprite-root pivot inside each output frame | **(133.75, 212.5)** |
+| Contact-shadow centre inside each output frame | (126.25, 198) |
 | Default sheet | 4 columns x 4 rows |
 | Default animation rate | 8 FPS |
 
-The pivot is based on the approved V6 proof's visible contact-shadow placement: the static artwork's former bottom-centre anchor was approximately (535, 850), and the accepted local shadow offset was (-30, -58), placing the ground reference near (505, 792). Treat this as a calibrated starting point, not a universal dragon anatomy rule.
+The sprite-root pivot comes from the approved V6 rig's existing ground anchor: the source artwork's estimated visible-bounds centre-bottom is (535, 850). The accepted contact shadow is a separate child at local offset (-30, -58), so its centre is (505, 792). At 256px output size those become root pivot (133.75, 212.5) and shadow centre (126.25, 198). Keep these two references distinct: the root drives world movement; the shadow is a visual contact patch. Treat the coordinates as the current Forest Drake calibration, not a universal creature rule.
 
 **The pivot is the ground-plane reference, not the lowest opaque pixel.** During a walk the feet deliberately lift and extend, so the lowest pixel changes from frame to frame. Never align on each frame's bottom edge.
 
@@ -48,7 +51,7 @@ Important outputs:
 - **ForestDrake_CanvasPivotOverlay_1024.png** — the same overlay at source-canvas size.
 - **ForestDrake_MasterPivot_Reference.png** — inspection copy of the approved artwork with the proposed pivot and 2:1 ground-plane ellipse drawn on top.
 
-The overlays are **inspection aids**. Do not feed the red pivot cross or green ellipse to Qwen as part of the final creature artwork, and do not import them into the game. The ControlGuide images contain only simplified body/limb construction lines on white.
+The overlays are **inspection aids**. The red cross marks the sprite-root pivot; the green ellipse marks the separate contact-shadow footprint offset from the root. Do not feed either overlay to Qwen as part of the final creature artwork, and do not import them into the game. The ControlGuide images contain only simplified body/limb construction lines on white.
 
 The current pose guides are a first geometric scaffold. They indicate a three-quarter quadruped, four distinct limb chains and a phase-shifted walking cycle; they are not final anatomical drawings. Inspect the guide sheets before using them. If the leg order or paw positions do not match the Drake's actual visible anatomy, correct the guide coordinates in generate_templates.py first.
 
@@ -93,7 +96,7 @@ The prompt deliberately describes only the frame layout, pose, registration and 
 Use the same approved master reference, the same Qwen graph, same canvas and the corresponding pose_XX.png guide for each frame. Keep the same seed for the first comparison batch; change only the pose guide / frame index.
 
 ~~~text
-Create one walking-cycle frame of the exact same forest dragon shown in the reference. Follow the supplied quadruped pose guide for the precise limb positions. Preserve the creature's identity, proportions, facing direction, three-quarter camera angle, scale and canvas registration. Keep the torso and head consistently placed; only the limbs and the small weight response should change for this phase of the walk. Keep all four legs anatomically distinct, with complete paws and claws. No walking direction change, no camera change, no crop, no zoom, no added scenery, no text, no guide lines in the finished artwork. Use a perfectly uniform saturated magenta background (#D632E8) for later alpha extraction.
+Create one walking-cycle frame of the Forest Drake. Follow the supplied quadruped pose guide for the precise limb positions. Preserve the approved reference artwork. Keep the torso/head registration consistent; change the leg positions for this phase of the walk, with only a small accompanying weight response. Keep all four legs distinct and retain complete paws and claws. No crop, zoom, camera change, scenery, props, text or guide lines in the finished artwork. Use a perfectly uniform saturated magenta background (#D632E8) for later alpha extraction.
 ~~~
 
 ## 3. Matte / transparency
@@ -133,7 +136,7 @@ Both routes create:
 - **alignment_offsets.csv** — auto-calculated body shifts plus optional manual corrections.
 - **alignment_report.json** — registration scores and warnings.
 
-The aligner resizes input canvases/cells to 256x256, removes only a verified uniform corner matte, and performs **translation-only body-core registration** inside the configured torso ROI. It does not align to the feet, because feet intentionally move. It does not scale frames independently, because independent scale changes can make the dragon pulse. The fixed target pivot stays at (126.25, 198) in every output frame.
+The aligner resizes input canvases/cells to 256x256, removes only a verified uniform corner matte, and performs **translation-only body-core registration** inside the configured torso ROI. It does not align to the feet, because feet intentionally move. It does not scale frames independently, because independent scale changes can make the dragon pulse. The fixed sprite-root pivot stays at (133.75, 212.5) in every output frame; the separate green shadow reference is offset to (126.25, 198).
 
 If the body's actual proportions differ strongly from the master, the registration score will be low. Inspect alignment_preview.png and alignment_report.json; do not blindly trust a low score. You can make small corrections in alignment_offsets.csv by changing manual_dx / manual_dy, then rerun with --offsets "path\to\alignment_offsets.csv". No Photoshop positioning is required.
 
@@ -147,7 +150,7 @@ Do not import a sheet merely because the animation looks lively. First verify:
 - The torso/head scale and location do not jump between cells.
 - Paws remain inside the cell and retain their full claws.
 - No frame contains text, cell borders, duplicated limbs or stray background.
-- The contact ellipse and pivot cross in the preview remain in the same ground location.
+- The green contact-shadow ellipse keeps its fixed offset from the red root-pivot cross in every frame.
 - The body-registration Dice score is reasonable and not flagged as weak.
 - The cycle returns to a pose compatible with its first frame.
 
