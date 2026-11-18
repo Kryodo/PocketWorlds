@@ -187,10 +187,10 @@ func _begin_drag(screen_position: Vector2) -> bool:
 	_is_hovering = false
 	_hover_clock = 0.0
 
-	# Compensate for the visual lift so the same creature point stays beneath
-	# the pointer. The ground anchor and shadow naturally sit below the lifted art.
-	_grab_offset = _drake_world_anchor.global_position - world_position + Vector2(0.0, HOVER_HEIGHT)
-	_target_anchor_global = _drake_world_anchor.global_position + Vector2(0.0, HOVER_HEIGHT)
+	# The ground anchor follows the pointer offset; the visual rises above it.
+	# This keeps a visible gap between the carried creature and its ground shadow.
+	_grab_offset = _drake_world_anchor.global_position - world_position
+	_target_anchor_global = _drake_world_anchor.global_position
 
 	_animate_lift(HOVER_HEIGHT, PICKUP_LIFT_DURATION, Tween.TRANS_BACK, Tween.EASE_OUT)
 	_start_pickup_pose_reaction()
