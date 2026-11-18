@@ -10,7 +10,8 @@ const HOVER_BOB_SPEED := 2.1
 const DRAG_FOLLOW_RESPONSE := 18.0
 const PICKUP_DURATION := 0.22
 const SETTLE_DURATION := 0.24
-const HIT_RECT := Rect2(Vector2(-54.0, -94.0), Vector2(108.0, 104.0))
+# The rig is scaled down from source-image pixels, so this hit rect uses rig-local source coordinates.
+const HIT_RECT := Rect2(Vector2(-430.0, -760.0), Vector2(860.0, 840.0))
 const SHADOW_LIFT_SCALE := 1.34
 const SHADOW_LIFT_ALPHA := 0.72
 
