@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bkleiv5ypfnr1"
+
+[deps]
+
+files=["res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.auto.translation", "res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.auto.translation", "res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.manual.translation", "res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.manual.translation", "res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.final.translation", "res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.final.translation", "res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.body.translation", "res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.registration.translation"]
+
+source_file="res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.csv"
+dest_files=["res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.auto.translation", "res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.auto.translation", "res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.manual.translation", "res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.manual.translation", "res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.final.translation", "res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.final.translation", "res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.body.translation", "res://art_inbox/creatures/animation_work/ForestDrake_Walk_Aligned/alignment_offsets.registration.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true
