@@ -1,0 +1,201 @@
+{
+  "workflow_version": 1,
+  "frame_count": 16,
+  "output_frame_px": 256,
+  "target_pivot_px": [
+    133.75,
+    212.5
+  ],
+  "registration_roi_px": [
+    82,
+    88,
+    178,
+    174
+  ],
+  "automatic_registration_enabled": true,
+  "source": "art_inbox\\creatures\\generated\\ForestDrake_Walk_Raw.png",
+  "outputs": [
+    "ForestDrake_Walk_16_Aligned.png",
+    "alignment_preview.png",
+    "alignment_offsets.csv",
+    "frames/"
+  ],
+  "frames": [
+    {
+      "frame": 0,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 1,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 2,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 3,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 4,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 5,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 6,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 7,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 8,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 9,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 10,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 11,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 12,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 13,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 14,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    },
+    {
+      "frame": 15,
+      "auto_dx": -24,
+      "auto_dy": -24,
+      "manual_dx": 0,
+      "manual_dy": 0,
+      "final_dx": -24,
+      "final_dy": -24,
+      "body_registration_dice": 0.9368,
+      "registration_warning": false
+    }
+  ]
+}
