@@ -85,6 +85,8 @@ func _ready() -> void:
 			_build_error_label("Could not decompress the Drake PNG.")
 			return
 	character_image.convert(Image.FORMAT_RGBA8)
+	if character_image.detect_alpha() == Image.ALPHA_NONE:
+		push_warning("Forest Drake master has no visible transparency; inspect the source PNG before evaluating the mesh test.")
 
 	_bounds = _get_visible_bounds(character_image)
 	if _bounds.size == Vector2i.ZERO:
@@ -125,7 +127,6 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, VIEWPORT_SIZE), Color("#1e2b26"), true)
 	draw_rect(Rect2(Vector2(20.0, 20.0), VIEWPORT_SIZE - Vector2(40.0, 40.0)), Color("#34483a"), false, 2.0)
 	draw_line(Vector2(150.0, 486.0), Vector2(1130.0, 486.0), Color(0.58, 0.66, 0.52, 0.34), 1.0)
-	draw_string(ThemeDB.fallback_font, Vector2(36.0, 112.0), "FRONT 3/4 WALKING — FULL IMAGE MESH TEST", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 17, Color("#d6dfcf"))
 
 
 func _process(delta: float) -> void:
@@ -162,6 +163,7 @@ func _build_skeleton_and_mesh(character_image: Image) -> void:
 	_rest_positions["RootAnchor"] = Vector2.ZERO
 
 	_body_motion_bone = _create_bone("BodyMotionBone", _ground_anchor, root_bone, 1.0)
+	_body_motion_bone.rest = _body_motion_bone.transform
 	_torso_bone = _create_bone("TorsoBone", Vector2(505.0, 605.0), _body_motion_bone, 110.0)
 	_head_bone = _create_bone("HeadNeckBone", Vector2(395.0, 505.0), _body_motion_bone, 86.0)
 	_wing_bone = _create_bone("WingBone", Vector2(605.0, 485.0), _body_motion_bone, 72.0)
